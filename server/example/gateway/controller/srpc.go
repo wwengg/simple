@@ -11,6 +11,7 @@ import (
 	"github.com/wwengg/simple/server/example/gateway/model/response"
 	"io"
 	"strconv"
+	"strings"
 )
 
 func Http2RpcxPost(c *gin.Context) {
@@ -22,6 +23,7 @@ func Http2RpcxPost(c *gin.Context) {
 		isProtobuf = a.(bool)
 	}
 	servicePath := c.Param("servicePath")
+
 	if servicePath == "" {
 		global.SLog.Error("empty servicepath")
 	}
@@ -30,6 +32,10 @@ func Http2RpcxPost(c *gin.Context) {
 	if serviceMethod == "" {
 		global.SLog.Error("empty servicemethod")
 	}
+
+	// 首字母小写转大写
+	servicePath = strings.ToUpper(servicePath[:1]) + servicePath[1:]
+	serviceMethod = strings.ToUpper(serviceMethod[:1]) + serviceMethod[1:]
 
 	payload, err := io.ReadAll(c.Request.Body)
 	c.Request.Body.Close()

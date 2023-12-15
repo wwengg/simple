@@ -17,7 +17,7 @@ slog:
   log-in-console: true
 
 rpc:
-  register-type: etcd
+  register-type: etcdv3
   register-addr:
     - 127.0.0.1:23791
     - 127.0.0.1:23792

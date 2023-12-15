@@ -11,10 +11,13 @@ require (
 	github.com/spf13/viper v1.18.1
 	go.uber.org/zap v1.21.0
 	google.golang.org/protobuf v1.31.0
+	gorm.io/driver/mysql v1.5.2
+	gorm.io/gorm v1.25.5
 )
 
 require (
 	github.com/akutz/memconn v0.1.0 // indirect
+	github.com/alitto/pond v1.8.3 // indirect
 	github.com/apache/thrift v0.18.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/cenk/backoff v2.2.1+incompatible // indirect
@@ -28,12 +31,15 @@ require (
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/go-echarts/go-echarts/v2 v2.3.2 // indirect
 	github.com/go-ping/ping v1.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/godzie44/go-uring v0.0.0-20220926161041-69611e8b13d5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -43,12 +49,19 @@ require (
 	github.com/grandcat/zeroconf v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/jamiealquiza/tachymeter v2.0.0+incompatible // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/juju/ratelimit v1.0.2 // indirect
+	github.com/julienschmidt/httprouter v1.3.0 // indirect
+	github.com/kavu/go_reuseport v1.5.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/klauspost/reedsolomon v1.11.7 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
+	github.com/libp2p/go-sockaddr v0.1.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
@@ -63,11 +76,15 @@ require (
 	github.com/quic-go/qtls-go1-19 v0.3.2 // indirect
 	github.com/quic-go/qtls-go1-20 v0.2.2 // indirect
 	github.com/quic-go/quic-go v0.34.0 // indirect
+	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rpcxio/libkv v0.5.1 // indirect
+	github.com/rs/cors v1.8.3 // indirect
 	github.com/rubyist/circuitbreaker v2.2.1+incompatible // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/smallnest/quick v0.1.0 // indirect
+	github.com/smallnest/statsview v0.0.0-20231119085602-10700f9abec4 // indirect
+	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
