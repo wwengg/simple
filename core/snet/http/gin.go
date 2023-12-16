@@ -6,10 +6,8 @@ package http
 
 import (
 	"fmt"
-	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 	"github.com/wwengg/simple/core/sconfig"
-	"time"
 )
 
 type GinEngine struct {
@@ -47,10 +45,9 @@ func NewGinEngine(config *sconfig.Config) *GinEngine {
 
 func (g *GinEngine) Serve() {
 	address := fmt.Sprintf(":%d", g.config.Addr)
-	s := endless.NewServer(address, g.engine)
-	s.ReadHeaderTimeout = 20 * time.Second
-	s.WriteTimeout = 20 * time.Second
-	s.MaxHeaderBytes = 1 << 20
+	
+	// windows or other
+	s := initServer(address, g.engine)
 
 	_ = fmt.Errorf(s.ListenAndServe().Error())
 }

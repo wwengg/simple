@@ -7,3 +7,7 @@ package http
 type HttpServer interface {
 	Serve()
 }
+
+type server interface {
+	ListenAndServe() error
+}
