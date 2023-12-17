@@ -33,7 +33,6 @@ func GatewayResult(code int32, msg string, c *gin.Context) {
 	} else {
 
 	}
-
 }
 
 func Ok(c *gin.Context) {

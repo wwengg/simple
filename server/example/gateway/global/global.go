@@ -10,6 +10,7 @@ import (
 )
 
 var (
-	SLog slog.Slog
-	SRPC srpc.SRPC
+	SLog   slog.Slog
+	SRPC   srpc.SRPC
+	CONFIG Config
 )

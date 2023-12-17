@@ -9,7 +9,7 @@ gateway:
 slog:
   level: info
   format: console
-  director: gatewayLog
+  director: log
   encode-level: LowercaseColorLevelEncoder
   stacktrace-key: stacktrace
   max-age: 30
