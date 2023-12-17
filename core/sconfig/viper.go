@@ -16,7 +16,7 @@ import (
 // Viper //
 // 优先级: 命令行 > 环境变量 > 默认值
 
-func Viper(path ...string) *viper.Viper {
+func Viper(rawValue any, path ...string) *viper.Viper {
 	var config string
 
 	if len(path) == 0 {
@@ -26,7 +26,7 @@ func Viper(path ...string) *viper.Viper {
 			config = os.Getenv(internal.ConfigEnv)
 			fmt.Printf("您正在使用%s环境变量,config的路径为%s\n", internal.ConfigEnv, config)
 			if config == "" {
-				fmt.Printf("请传入config.yaml的路径，可通过-c 或者 SIMPLE_CONFIG 环境变量", internal.ConfigEnv, config)
+				panic(fmt.Errorf("请传入config.yaml的路径，可通过-c 或者 SIMPLE_CONFIG 环境变量 \n"))
 			}
 		} else { // 命令行参数不为空 将值赋值于config
 			fmt.Printf("您正在使用命令行的-c参数传递的值,config的路径为%s\n", config)
@@ -47,11 +47,11 @@ func Viper(path ...string) *viper.Viper {
 
 	v.OnConfigChange(func(e fsnotify.Event) {
 		fmt.Println("config file changed:", e.Name)
-		if err := v.Unmarshal(&S_CONF); err != nil {
+		if err := v.Unmarshal(rawValue); err != nil {
 			fmt.Println(err)
 		}
 	})
-	if err := v.Unmarshal(&S_CONF); err != nil {
+	if err := v.Unmarshal(rawValue); err != nil {
 		panic(err)
 	}
 

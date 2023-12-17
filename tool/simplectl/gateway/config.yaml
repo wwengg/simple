@@ -1,0 +1,27 @@
+# code generator by simplectl
+# system configuration
+gateway:
+  env: local # 修改为public可以关闭路由日志输出
+  addr: 8888
+  #  路由全局前缀
+  public-router-prefix: /v1
+  private-router-prefix: /v2
+
+slog:
+  level: info
+  format: console
+  director: gatewayLog
+  encode-level: LowercaseColorLevelEncoder
+  stacktrace-key: stacktrace
+  max-age: 30
+  show-line: true
+  log-in-console: true
+
+rpc:
+  register-type: etcdv3
+  register-addr:
+    - 127.0.0.1:23791
+    - 127.0.0.1:23792
+    - 127.0.0.1:23793
+  base-path: local
+

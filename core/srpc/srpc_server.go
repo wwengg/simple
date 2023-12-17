@@ -16,12 +16,12 @@ type SRPCServer interface {
 	Serve(network, address string) (err error)
 }
 
-func AddRegistryPlugin(s *server.Server, addr string) {
+func AddRegistryPlugin(s *server.Server, rpc sconfig.RPC, service sconfig.RpcService) {
 
 	r := &serverplugin.EtcdV3RegisterPlugin{
-		ServiceAddress: "tcp@" + addr,
-		EtcdServers:    sconfig.S_CONF.RPC.RegisterAddr,
-		BasePath:       sconfig.S_CONF.RPC.BasePath,
+		ServiceAddress: "tcp@" + service.ServiceAddr,
+		EtcdServers:    rpc.RegisterAddr,
+		BasePath:       rpc.BasePath,
 		UpdateInterval: time.Minute,
 	}
 	err := r.Start()

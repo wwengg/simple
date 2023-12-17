@@ -1,7 +1,4 @@
-// @Title
-// @Description
-// @Author  Wangwengang  2023/12/10 13:44
-// @Update  Wangwengang  2023/12/10 13:44
+// code generator by simplectl
 package main
 
 import (
@@ -14,6 +11,8 @@ import (
 	"github.com/wwengg/simple/server/example/gateway/middleware"
 	"github.com/wwengg/simple/server/example/gateway/router"
 )
+
+
 
 func main() {
 	// 初始化配置文件

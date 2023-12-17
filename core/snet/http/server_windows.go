@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func initServer(address string, router *gin.Engine) server {
+func InitServer(address string, router *gin.Engine) server {
 	return &http.Server{
 		Addr:           address,
 		Handler:        router,

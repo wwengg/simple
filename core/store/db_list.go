@@ -9,9 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func DBList() map[string]*gorm.DB {
+func DBList(config *[]sconfig.SpecializedDB) map[string]*gorm.DB {
 	dbMap := make(map[string]*gorm.DB)
-	for _, info := range sconfig.S_CONF.DBList {
+	for _, info := range *config {
 		if info.Disable {
 			continue
 		}

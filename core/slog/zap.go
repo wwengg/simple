@@ -22,6 +22,9 @@ type Zap struct {
 }
 
 func NewZapLog(config *sconfig.Slog) *Zap {
+	if config == nil {
+		panic(fmt.Errorf("请在config.yaml中配置slog \n"))
+	}
 	if ok, _ := utils.PathExists(config.Director); !ok { // 判断是否有Director文件夹
 		fmt.Printf("create %v directory\n", config.Director)
 		_ = os.Mkdir(config.Director, os.ModePerm)

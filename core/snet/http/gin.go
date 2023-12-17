@@ -18,36 +18,36 @@ type GinEngine struct {
 	PrivateRouterGroup *gin.RouterGroup
 }
 
-func NewGinEngine(config *sconfig.Config) *GinEngine {
+func NewGinEngine(config *sconfig.Gateway) *GinEngine {
 	engine := gin.New()
 
-	if config.Gateway.PublicRouterPrefix == "" {
-		config.Gateway.PublicRouterPrefix = "/"
+	if config.PublicRouterPrefix == "" {
+		config.PublicRouterPrefix = "/"
 	}
-	if config.Gateway.PublicRouterPrefix[0] != '/' {
-		config.Gateway.PublicRouterPrefix = "/" + config.Gateway.PublicRouterPrefix
+	if config.PublicRouterPrefix[0] != '/' {
+		config.PublicRouterPrefix = "/" + config.PublicRouterPrefix
 	}
 
-	if config.Gateway.PrivateRouterPrefix == "" {
-		config.Gateway.PrivateRouterPrefix = "/"
+	if config.PrivateRouterPrefix == "" {
+		config.PrivateRouterPrefix = "/"
 	}
-	if config.Gateway.PrivateRouterPrefix[0] != '/' {
-		config.Gateway.PrivateRouterPrefix = "/" + config.Gateway.PrivateRouterPrefix
+	if config.PrivateRouterPrefix[0] != '/' {
+		config.PrivateRouterPrefix = "/" + config.PrivateRouterPrefix
 	}
 
 	return &GinEngine{
-		config:             &config.Gateway,
+		config:             config,
 		engine:             engine,
-		PublicRouterGroup:  engine.Group(config.Gateway.PublicRouterPrefix),
-		PrivateRouterGroup: engine.Group(config.Gateway.PrivateRouterPrefix),
+		PublicRouterGroup:  engine.Group(config.PublicRouterPrefix),
+		PrivateRouterGroup: engine.Group(config.PrivateRouterPrefix),
 	}
 }
 
 func (g *GinEngine) Serve() {
 	address := fmt.Sprintf(":%d", g.config.Addr)
-	
+
 	// windows or other
-	s := initServer(address, g.engine)
+	s := InitServer(address, g.engine)
 
 	_ = fmt.Errorf(s.ListenAndServe().Error())
 }
