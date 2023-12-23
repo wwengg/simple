@@ -50,6 +50,10 @@ type RPCXClients struct {
 	seq uint64
 }
 
+func TODO() {
+	return
+}
+
 func NewSRPCClients(config *sconfig.RPC, opts ...OptionSRPCClients) *RPCXClients {
 	register, err := CreateServiceDiscovery(config.RegisterAddr, config.RegisterType, config.BasePath)
 	if err != nil {
@@ -73,7 +77,7 @@ func NewSRPCClients(config *sconfig.RPC, opts ...OptionSRPCClients) *RPCXClients
 
 }
 
-func (s *RPCXClients) RPC(servicePath string, serviceMethod string, payload []byte, serializeType protocol.SerializeType) (meta map[string]string, resp []byte, err error) {
+func (s *RPCXClients) RPC(servicePath string, serviceMethod string, payload []byte, serializeType protocol.SerializeType, oneway bool) (meta map[string]string, resp []byte, err error) {
 	req := protocol.NewMessage()
 	req.SetMessageType(protocol.Request)
 
@@ -87,6 +91,8 @@ func (s *RPCXClients) RPC(servicePath string, serviceMethod string, payload []by
 	req.ServiceMethod = serviceMethod
 
 	req.Payload = payload
+
+	req.SetOneway(oneway)
 
 	seq := atomic.AddUint64(&s.seq, 1)
 	req.SetSeq(seq)
@@ -103,11 +109,11 @@ func (s *RPCXClients) RPC(servicePath string, serviceMethod string, payload []by
 }
 
 func (s *RPCXClients) RPCProtobuf(servicePath string, serviceMethod string, payload []byte) (meta map[string]string, resp []byte, err error) {
-	return s.RPC(servicePath, serviceMethod, payload, protocol.ProtoBuffer)
+	return s.RPC(servicePath, serviceMethod, payload, protocol.ProtoBuffer, false)
 }
 
 func (s *RPCXClients) RPCJson(servicePath string, serviceMethod string, payload []byte) (meta map[string]string, resp []byte, err error) {
-	return s.RPC(servicePath, serviceMethod, payload, protocol.JSON)
+	return s.RPC(servicePath, serviceMethod, payload, protocol.JSON, false)
 }
 
 func (s *RPCXClients) GetXClient(servicePath string) (xc client.XClient, err error) {

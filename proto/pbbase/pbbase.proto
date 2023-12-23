@@ -8,3 +8,9 @@ message Empty {
 
 }
 
+message PageInfo{
+  int32 page = 1;
+  int32 pageSize = 2;
+  string keyword = 3;
+}
+

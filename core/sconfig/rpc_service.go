@@ -6,4 +6,5 @@ package sconfig
 
 type RpcService struct {
 	ServiceAddr string `json:"serviceAddr" yaml:"service-addr" mapstructure:"service-addr"`
+	Port        string `json:"port" yaml:"port" mapstructure:"port"`
 }

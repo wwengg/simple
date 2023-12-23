@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/wwengg/simple/core/internal"
 	"os"
+	"reflect"
 )
 
 // Viper //
@@ -59,6 +60,22 @@ func Viper(rawValue any, path ...string) *viper.Viper {
 	//rawVal.RootPath, _ = filepath.Abs("..")
 	//
 	//// gateway basepath
+	Show(rawValue)
 
 	return v
+}
+
+// Show Zinx Config Info
+func Show(rawValue any) {
+	objVal := reflect.ValueOf(rawValue).Elem()
+	objType := reflect.TypeOf(rawValue)
+
+	fmt.Println("===== Global Config =====")
+	for i := 0; i < objVal.NumField(); i++ {
+		field := objVal.Field(i)
+		typeField := objType.Field(i)
+
+		fmt.Printf("%s: %v\n", typeField.Name, field.Interface())
+	}
+	fmt.Println("==============================")
 }
