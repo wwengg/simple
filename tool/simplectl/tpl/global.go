@@ -7,7 +7,6 @@ package tpl
 func GlobalTemplate() []byte {
 	return []byte(`/*
 {{ .Copyright }}
-{{ if .Legal.Header }}{{ .Legal.Header }}{{ end }}
 */
 package global
 
@@ -50,7 +49,6 @@ func InitDB() {
 func GlobalConfigTemplate() []byte {
 	return []byte(`/*
 {{ .Copyright }}
-{{ if .Legal.Header }}{{ .Legal.Header }}{{ end }}
 */
 package global
 
