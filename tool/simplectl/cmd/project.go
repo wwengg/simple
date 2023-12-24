@@ -106,7 +106,7 @@ func (p *Project) Create() error {
 	}
 	defer globalConfigFile.Close()
 
-	globalConfigTemplate := template.Must(template.New("global").Parse(string(tpl.GlobalConfigTemplate())))
+	globalConfigTemplate := template.Must(template.New("globalConfig").Parse(string(tpl.GlobalConfigTemplate())))
 	err = globalConfigTemplate.Execute(globalFile, p)
 	if err != nil {
 		return err
