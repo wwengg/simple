@@ -62,6 +62,13 @@ var rpcInitCmd = &cobra.Command{
 }
 
 func init() {
+	rootCmd.PersistentFlags().StringP("author", "a", "YOUR NAME", "author name for copyright attribution")
+	rootCmd.PersistentFlags().Bool("viper", false, "use Viper for configuration")
+	cobra.CheckErr(viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author")))
+	cobra.CheckErr(viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper")))
+	viper.SetDefault("author", "NAME HERE <EMAIL ADDRESS>")
+	viper.SetDefault("license", "none")
+
 	rootCmd.AddCommand(rpcCmd)
 	rpcCmd.AddCommand(rpcInitCmd)
 	// Here you will define your flags and configuration settings.
