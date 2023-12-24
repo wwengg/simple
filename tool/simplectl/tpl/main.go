@@ -94,7 +94,8 @@ func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) error {
 	// 服务注册中心
 	srpc.AddRegistryPlugin(s, rpc, rpcService)
 
-	s.RegisterName("Example", new(service.Example), "")
+	// 在此处注册服务
+	//s.RegisterName("Example", new(service.Example), "")
 
 	return s.Serve("tcp", fmt.Sprintf("%s:%s", rpcService.ServiceAddr, rpcService.Port))
 }
