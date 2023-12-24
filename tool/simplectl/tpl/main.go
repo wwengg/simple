@@ -3,7 +3,6 @@ package tpl
 func MainTemplate() []byte {
 	return []byte(`/*
 {{ .Copyright }}
-{{ if .Legal.Header }}{{ .Legal.Header }}{{ end }}
 */
 package main
 
@@ -18,7 +17,6 @@ func main() {
 func RootTemplate() []byte {
 	return []byte(`/*
 {{ .Copyright }}
-{{ if .Legal.Header }}{{ .Legal.Header }}{{ end }}
 */
 package cmd
 
