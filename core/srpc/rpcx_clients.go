@@ -92,7 +92,7 @@ func (s *RPCXClients) RPC(servicePath string, serviceMethod string, payload []by
 
 	req.Payload = payload
 
-	req.SetOneway(oneway)
+	req.SetOneway(oneway) // 不用等服务的响应结果，只管发
 
 	seq := atomic.AddUint64(&s.seq, 1)
 	req.SetSeq(seq)

@@ -25,6 +25,9 @@ package cmd
 import (
 {{- if .Viper }}
 	"fmt"{{ end }}
+	"github.com/smallnest/rpcx/server"
+	"github.com/wwengg/simple/core/sconfig"
+	"github.com/wwengg/simple/core/srpc"
 	"os"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
@@ -49,7 +52,12 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.` + "`" + `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		global.InitSlog()
+		global.InitSRPC()
+		global.InitDB()
+		global.LOG.Error({{ .AppName }}Serve(global.CONFIG.RPC, global.CONFIG.RpcService).Error())
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -76,6 +84,21 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+// {{ .AppName }}Serve starts a server only registers one service.
+// You can register more services and only start one server.
+// It blocks until the application exits.
+func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) error {
+	s := server.NewServer()
+	// 开启rpcx监控
+	s.EnableProfile = true
+	// 服务注册中心
+	srpc.AddRegistryPlugin(s, rpc, rpcService)
+
+	s.RegisterName("Example", new(service.Example), "")
+
+	return s.Serve("tcp", fmt.Sprintf("%s:%s", rpcService.ServiceAddr, rpcService.Port))
 }
 
 {{ if .Viper -}}
@@ -118,4 +141,38 @@ func initConfig() {
 }
 {{- end }}
 `)
+}
+
+func ConfigYamlTemplate() []byte {
+	return []byte(`rpc-service:
+  service-addr: 127.0.0.1
+  port: 9001
+
+rpc:
+  register-type: etcdv3
+  register-addr:
+    - 127.0.0.1:23791
+    - 127.0.0.1:23792
+    - 127.0.0.1:23793
+  base-path: local
+
+redis:
+  addr: 127.0.0.1:6379
+  password:
+  db: 0
+
+db-list:
+  - disabled: true # 是否启用
+    type: mysql # 数据库的类型,目前支持mysql、pgsql
+    alias-name: upms # 数据库的名称,注意: alias-name 需要在db-list中唯一
+    path: 127.0.0.1
+    port: 3306
+    config: charset=utf8mb4&parseTime=True&loc=Local
+    db-name: upms
+    username: root
+    password: root
+    max-idle-conns: 10
+    max-open-conns: 100
+    log-mode: error
+    log-zap: true`)
 }
