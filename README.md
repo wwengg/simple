@@ -4,19 +4,18 @@
 ## 快速开始
 
 ### simplectl 快速生成rpc服务代码
-    1. install simplectl
+1. install simplectl
 ```
 go install github.com/wwengg/simple/tool/simplectl@latest
 ```
 
-    2. Create a new directory
-    3. `cd` into that directory
-    4. run `go mod init <MODNAME>`
+2. Create a new directory
+3. `cd` into that directory
+4. run `go mod init <MODNAME>`
 
 e.g.
 ```
-cd $HOME/code 
-mkdir myapp
+mkdir myapp 
 cd myapp
 go mod init github.com/wwengg/myapp
 simplectl rpc init --author "wwengg info@wwengg.cn"`
