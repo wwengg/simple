@@ -122,6 +122,23 @@ func (p *Project) Create() error {
 		cobra.CheckErr(os.Mkdir(fmt.Sprintf("%s/proto", p.AbsolutePath), 0751))
 	}
 
+	// create proto/pbcommon
+	if _, err = os.Stat(fmt.Sprintf("%s/proto/pbcommon", p.AbsolutePath)); os.IsNotExist(err) {
+		cobra.CheckErr(os.Mkdir(fmt.Sprintf("%s/proto/pbcommon", p.AbsolutePath), 0751))
+	}
+	pbcommonFile, err := os.Create(fmt.Sprintf("%s/proto/pbcommon/pbcommon.proto", p.AbsolutePath))
+	if err != nil {
+		return err
+
+	}
+	defer pbcommonFile.Close()
+
+	commonProtoTemplate := template.Must(template.New("globalConfig").Parse(string(tpl.CommonProtoTemplate())))
+	err = commonProtoTemplate.Execute(pbcommonFile, p)
+	if err != nil {
+		return err
+	}
+
 	// create service
 	if _, err = os.Stat(fmt.Sprintf("%s/service", p.AbsolutePath)); os.IsNotExist(err) {
 		cobra.CheckErr(os.Mkdir(fmt.Sprintf("%s/service", p.AbsolutePath), 0751))

@@ -57,7 +57,7 @@ var rpcInitCmd = &cobra.Command{
 		if viper.GetBool("useViper") {
 			cobra.CheckErr(goGet("github.com/spf13/viper"))
 		}
-		fmt.Printf("Your Cobra application is ready at\n%s\n", projectPath)
+		fmt.Printf("Your Simple rpc application is ready at\n%s\n", projectPath)
 	},
 }
 
@@ -144,7 +144,7 @@ func parseModInfo() (Mod, CurDir) {
 
 	// Unsure why, but if no module is present Path is set to this string.
 	if mod.Path == "command-line-arguments" {
-		cobra.CheckErr("Please run `go mod init <MODNAME>` before `simple-cli rpc init`")
+		cobra.CheckErr("Please run `go mod init <MODNAME>` before `simplecli rpc init`")
 	}
 
 	e := modInfoJSON("-e")
