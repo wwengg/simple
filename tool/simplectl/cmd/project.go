@@ -28,6 +28,24 @@ type Command struct {
 	*Project
 }
 
+func (c *Command) Create() error {
+	if _, err := os.Stat(fmt.Sprintf("%s/proto/pb%s", c.AbsolutePath, c.CmdName)); os.IsNotExist(err) {
+		cobra.CheckErr(os.Mkdir(fmt.Sprintf("%s/proto/pb%s", c.AbsolutePath, c.CmdName), 0751))
+	}
+	protoFile, err := os.Create(fmt.Sprintf("%s/proto/pb%s/pb%s.proto", c.AbsolutePath, c.CmdName, c.CmdName))
+	if err != nil {
+		return err
+	}
+	defer protoFile.Close()
+
+	protoTemplate := template.Must(template.New("proto").Parse(string(tpl.NewProtoTemplate())))
+	err = protoTemplate.Execute(protoFile, c)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *Project) Create() error {
 	// check if AbsolutePath exists
 	if _, err := os.Stat(p.AbsolutePath); os.IsNotExist(err) {

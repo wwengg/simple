@@ -48,38 +48,37 @@ func NewProtoTemplate() []byte {
 */
 syntax = "proto3";
 
-package pb{{ .AppName }};
+package pb{{ .CmdName }};
 
-option go_package = "{{ .PkgName }}/proto/pb{{ .AppName }}";
+option go_package = "{{ .PkgName }}/proto/pb{{ .CmdName }}";
 
 import "pbcommon/pbcommon.proto";
 
 
-message UserModel{
+message {{ .CmdParent }}Model{
   int64 id = 1;
   string createdAt = 2;
   string updatedAt = 3;
 
-  string name = 4;
 }
 
-message FindUserArgs{
+message Find{{ .CmdParent }}Args{
   pbcommon.PageInfo pageInfo = 1;
-  UserModel query = 2;
+  {{ .CmdParent }}Model query = 2;
 }
 
-message FindUserReplay{
+message Find{{ .CmdParent }}Replay{
   pbcommon.ErrCode code = 1;
   string msg = 2;
-  UserModel data =3;
-  repeated UserModel list = 4;
+  {{ .CmdParent }}Model data =3;
+  repeated {{ .CmdParent }}Model list = 4;
 }
 
-service User {
-  rpc CreateUser(UserModel) returns(pbcommon.CommonResult){}
-  rpc UpdateUser(UserModel) returns(pbcommon.CommonResult){}
+service {{ .CmdParent }} {
+  rpc CreateUser({{ .CmdParent }}Model) returns(pbcommon.CommonResult){}
+  rpc UpdateUser({{ .CmdParent }}Model) returns(pbcommon.CommonResult){}
   rpc DeleteUser(pbcommon.IdArgs) returns(pbcommon.CommonResult){}
-  rpc FindUserById(pbcommon.IdArgs) returns(FindUserReplay){}
-  rpc FindUserList(FindUserArgs) returns(FindUserReplay){}
+  rpc FindUserById(pbcommon.IdArgs) returns(Find{{ .CmdParent }}Replay){}
+  rpc FindUserList(Find{{ .CmdParent }}Args) returns(Find{{ .CmdParent }}Replay){}
 }`)
 }

@@ -18,8 +18,14 @@ e.g.
 mkdir myapp 
 cd myapp
 go mod init github.com/wwengg/myapp
-simplectl rpc init --author "wwengg info@wwengg.cn"`
+simplectl rpc init --author "wwengg info@wwengg.cn"
 go run main.go
+```
+
+### simplectl 快速生成基础增删改查proto文件
+e.g
+```
+simplectl proto new user
 ```
 
 ## TODO List
