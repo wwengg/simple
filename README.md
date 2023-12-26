@@ -28,6 +28,15 @@ e.g
 simplectl proto new user
 ```
 
+### protoc 快速生成model和service
+1. install simplectl
+   `go install github.com/wwengg/protoc-gen-simple@latest`
+
+e.g
+```
+protoc --proto_path=proto --go_out=proto --go_opt=paths=source_relative --simple_out=model --simple_opt=paths=source_relative pbuser/pbuser.proto
+```
+
 ## TODO List
 
 ### gateway
@@ -48,8 +57,9 @@ simplectl proto new user
 - [ ] 支持Json/Protobuf数据解析
  
 ### rpc service
-- [ ] simplectl 初始化项目(Tanks [Cobra](https://https://github.com/spf13/cobra))
-- [ ] simplectl 根据proto快速生成model([gorm](https://github.com/go-gorm/gorm))、service([rpcx-server](https://github.com/smallnest/rpcx))
+- [x] simplectl 初始化项目(Tanks [Cobra](https://https://github.com/spf13/cobra))
+- [x] simplectl 快速生成proto
+- [x] simplectl 根据proto快速生成model([gorm](https://github.com/go-gorm/gorm))、service([rpcx-server](https://github.com/smallnest/rpcx))
 - [x] 服务性能监控报警
 - [x] 日志记录
 - [ ] 调用鉴权
