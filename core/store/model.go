@@ -10,6 +10,11 @@ import (
 	"gorm.io/gorm"
 )
 
+// proto 生成go文件引入所用
+func TODO() string {
+	return ""
+}
+
 type BASE_MODEL struct {
 	ID        int64          `gorm:"primarykey" json:"ID"` // 主键ID
 	CreatedAt time.Time      // 创建时间
