@@ -52,7 +52,3 @@ func (r *RedisBase) GetHash(k int64) int64 {
 	v = v % 100
 	return v
 }
-
-func (r *RedisBase) HSet() {
-	
-}

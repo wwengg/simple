@@ -50,6 +50,15 @@ func (kv *KV) Get(id int64) (string, error) {
 	}
 }
 
+func (kv *KV) Del(id int64) error {
+	if strings.Contains(kv.keyformat, "%d") {
+		key := fmt.Sprintf(kv.keyformat, id)
+		return kv.RedisCli.Del(context.Background(), key).Err()
+	} else {
+		return errors.New("keyformat err")
+	}
+}
+
 // 重新计算过期时间，并获取值
 func (kv *KV) Expire(id int64) error {
 	if !strings.Contains(kv.keyformat, "%d") {
