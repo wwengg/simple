@@ -38,11 +38,6 @@ func InitSRPC() {
 func InitDB() {
 	// 初始化DBList
 	DBList = store.DBList(&CONFIG.DBList)
-
-	// 创建初始化数据库表
-	//DBUpms.AutoMigrate(
-	//	model.ServerInfo{},
-	//)
 }`)
 }
 

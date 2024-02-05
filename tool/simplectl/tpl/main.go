@@ -54,6 +54,12 @@ to quickly create a Cobra application.` + "`" + `,
 		global.InitSlog()
 		global.InitSRPC()
 		global.InitDB()
+	
+		// 创建初始化数据库表
+		//DB.AutoMigrate(
+		//	model.ServerInfo{},
+		//)
+		
 		global.LOG.Error({{ .AppName }}Serve(global.CONFIG.RPC, global.CONFIG.RpcService).Error())
 	},
 }

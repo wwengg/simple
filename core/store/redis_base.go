@@ -19,7 +19,7 @@ type RedisBase struct {
 	RedisCli *redis.Client
 }
 
-func NewCache(config sconfig.Redis, config2 sconfig.RPC) *RedisBase {
+func NewCache(config sconfig.Redis) *RedisBase {
 	numCPU := runtime.NumCPU()
 	redisCli := redis.NewClient(&redis.Options{
 		Addr:         config.Addr,
