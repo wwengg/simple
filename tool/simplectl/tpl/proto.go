@@ -75,10 +75,10 @@ message Find{{ .CmdParent }}Replay{
 }
 
 service {{ .CmdParent }} {
-  rpc Create({{ .CmdParent }}Model) returns(pbcommon.CommonResult){}
-  rpc Update({{ .CmdParent }}Model) returns(pbcommon.CommonResult){}
-  rpc Delete(pbcommon.IdArgs) returns(pbcommon.CommonResult){}
-  rpc Find({{ .CmdParent }}ById(pbcommon.IdArgs) returns(Find{{ .CmdParent }}Replay){}
-  rpc Find({{ .CmdParent }}List(Find{{ .CmdParent }}Args) returns(Find{{ .CmdParent }}Replay){}
+  rpc Create{{ .CmdParent }}({{ .CmdParent }}Model) returns(pbcommon.CommonResult){}
+  rpc Update{{ .CmdParent }}({{ .CmdParent }}Model) returns(pbcommon.CommonResult){}
+  rpc Delete{{ .CmdParent }}(pbcommon.IdArgs) returns(pbcommon.CommonResult){}
+  rpc Find{{ .CmdParent }}ById(pbcommon.IdArgs) returns(Find{{ .CmdParent }}Replay){}
+  rpc Find{{ .CmdParent }}List(Find{{ .CmdParent }}Args) returns(Find{{ .CmdParent }}Replay){}
 }`)
 }
