@@ -5,6 +5,7 @@
 package srpc
 
 import (
+	"fmt"
 	"github.com/rpcxio/rpcx-etcd/serverplugin"
 	"github.com/smallnest/rpcx/server"
 	"github.com/wwengg/simple/core/sconfig"
@@ -19,7 +20,7 @@ type SRPCServer interface {
 func AddRegistryPlugin(s *server.Server, rpc sconfig.RPC, service sconfig.RpcService) {
 
 	r := &serverplugin.EtcdV3RegisterPlugin{
-		ServiceAddress: "tcp@" + service.ServiceAddr,
+		ServiceAddress: fmt.Sprintf("tcp@%s:%s",service.ServiceAddr,service.Port),
 		EtcdServers:    rpc.RegisterAddr,
 		BasePath:       rpc.BasePath,
 		UpdateInterval: time.Minute,
