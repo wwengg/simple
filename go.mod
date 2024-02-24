@@ -11,6 +11,7 @@ require (
 	github.com/rpcxio/rpcx-etcd v0.3.2
 	github.com/smallnest/rpcx v1.8.21
 	github.com/spf13/viper v1.18.1
+	go.etcd.io/etcd/api/v3 v3.5.10
 	go.etcd.io/etcd/client/v3 v3.5.10
 	go.uber.org/zap v1.21.0
 	google.golang.org/protobuf v1.31.0
@@ -104,7 +105,6 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xtaci/kcp-go v5.4.20+incompatible // indirect
-	go.etcd.io/etcd/api/v3 v3.5.10 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.10 // indirect
 	go.etcd.io/etcd/client/v2 v2.305.10 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
