@@ -9,8 +9,8 @@ type Slog interface {
 	Info(msg string, fields ...Field)
 	Warn(msg string, fields ...Field)
 	Error(msg string, fields ...Field)
-	Infof(format string, a ...any)
-	Debugf(format string, a ...any)
-	Errorf(format string, a ...any)
-	Warnf(format string, a ...any)
+	Infof(format string, a ...interface{})
+	Debugf(format string, a ...interface{})
+	Errorf(format string, a ...interface{})
+	Warnf(format string, a ...interface{})
 }

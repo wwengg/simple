@@ -18,6 +18,7 @@ import (
 
 type Zap struct {
 	logger *zap.Logger
+	sugar  *zap.SugaredLogger
 	config *sconfig.Slog
 }
 
@@ -34,11 +35,14 @@ func NewZapLog(config *sconfig.Slog) *Zap {
 	logger := zap.New(zapcore.NewTee(cores...))
 
 	if config.ShowLine {
-		logger = logger.WithOptions(zap.AddCaller())
+		logger = logger.WithOptions(zap.AddCaller(), zap.AddCallerSkip(1))
 	}
+	defer logger.Sync()
+	sugar := logger.Sugar()
 
 	return &Zap{
 		logger: logger,
+		sugar:  sugar,
 		config: config,
 	}
 }
@@ -59,22 +63,18 @@ func (z *Zap) Warn(msg string, fields ...Field) {
 	z.logger.Warn(msg, fields...)
 }
 
-func (z *Zap) Infof(format string, a ...any) {
-	info := fmt.Sprintf(format, a...)
-	z.logger.Info(info)
+func (z *Zap) Infof(format string, a ...interface{}) {
+	z.sugar.Infof(format, a)
 }
 
-func (z *Zap) Debugf(format string, a ...any) {
-	debug := fmt.Sprintf(format, a...)
-	z.logger.Debug(debug)
+func (z *Zap) Debugf(format string, a ...interface{}) {
+	z.sugar.Debugf(format, a)
 }
 
-func (z *Zap) Errorf(format string, a ...any) {
-	msg := fmt.Sprintf(format, a...)
-	z.logger.Error(msg)
+func (z *Zap) Errorf(format string, a ...interface{}) {
+	z.sugar.Errorf(format, a)
 }
 
-func (z *Zap) Warnf(format string, a ...any) {
-	msg := fmt.Sprintf(format, a...)
-	z.logger.Warn(msg)
+func (z *Zap) Warnf(format string, a ...interface{}) {
+	z.sugar.Warnf(format, a)
 }
