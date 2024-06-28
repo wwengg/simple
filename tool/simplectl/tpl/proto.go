@@ -14,18 +14,24 @@ package pbcommon;
 
 option go_package = "{{ .PkgName }}/proto/pbcommon";
 
-enum ErrCode {
-  ErrCodeNone = 0;
-  ErrCodeSuccess = 200; // 操作成功
+enum EnumCode {
+  None = 0;
+  Success = 200; // 操作成功
+  Fail = 500; // 操作失败
+  Unknown = 501; // 未知错误
+  Internal = 502; // 内部错误
+  Invalid = 503; // 无效数据
+  InvalidParam = 504; // 无效参数
+  ParamError = 505; // 参数错误
 
-  ErrCodeFindError = 1001; // 查询失败
-  ErrCodeCreateError = 1002; // 创建失败
-  ErrCodeDeleteError = 1003; // 删除失败
-  ErrCodeUpdateError = 1004; // 更新失败
+  FindError = 1001; // 查询失败
+  CreateError = 1002; // 创建失败
+  DeleteError = 1003; // 删除失败
+  UpdateError = 1004; // 更新失败
 }
 
 message CommonResult{
-  ErrCode code = 1;
+  EnumCode code = 1;
   string msg = 2;
 }
 
@@ -68,10 +74,11 @@ message Find{{ .CmdParent }}Args{
 }
 
 message Find{{ .CmdParent }}Replay{
-  pbcommon.ErrCode code = 1;
+  pbcommon.EnumCode code = 1;
   string msg = 2;
   {{ .CmdParent }}Model data =3;
   repeated {{ .CmdParent }}Model list = 4;
+  int64 total = 5;
 }
 
 service {{ .CmdParent }} {
