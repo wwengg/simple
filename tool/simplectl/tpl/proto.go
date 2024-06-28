@@ -17,6 +17,12 @@ option go_package = "{{ .PkgName }}/proto/pbcommon";
 enum ErrCode {
   ErrCodeNone = 0;
   ErrCodeSuccess = 200; // 操作成功
+  ErrCodeFail = 500; // 操作失败
+  ErrCodeUnknown = 501; // 未知错误
+  ErrCodeInternal = 502; // 内部错误
+  ErrCodeInvalid = 503; // 无效数据
+  ErrCodeInvalidParam = 504; // 无效参数
+  ErrCodeParamError = 505; // 参数错误
 
   ErrCodeFindError = 1001; // 查询失败
   ErrCodeCreateError = 1002; // 创建失败
