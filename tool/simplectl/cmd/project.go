@@ -6,10 +6,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/wwengg/simple/tool/simplectl/tpl"
 	"os"
 	"text/template"
+
+	"github.com/spf13/cobra"
+	"github.com/wwengg/simple/tool/simplectl/tpl"
 )
 
 // Project contains name, license and paths to projects.
@@ -163,9 +164,9 @@ func (p *Project) Create() error {
 	}
 
 	// create service/impl
-	if _, err = os.Stat(fmt.Sprintf("%s/service/impl", p.AbsolutePath)); os.IsNotExist(err) {
-		cobra.CheckErr(os.Mkdir(fmt.Sprintf("%s/service/impl", p.AbsolutePath), 0751))
-	}
+	// if _, err = os.Stat(fmt.Sprintf("%s/service/impl", p.AbsolutePath)); os.IsNotExist(err) {
+	// 	cobra.CheckErr(os.Mkdir(fmt.Sprintf("%s/service/impl", p.AbsolutePath), 0751))
+	// }
 
 	// create license
 	return nil
