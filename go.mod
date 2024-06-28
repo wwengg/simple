@@ -10,7 +10,7 @@ require (
 	github.com/redis/go-redis/v9 v9.3.1
 	github.com/rpcxio/rpcx-etcd v0.3.2
 	github.com/smallnest/rpcx v1.8.21
-	github.com/spf13/viper v1.18.1
+	github.com/spf13/viper v1.18.2
 	go.etcd.io/etcd/api/v3 v3.5.10
 	go.etcd.io/etcd/client/v3 v3.5.10
 	go.uber.org/zap v1.21.0
