@@ -164,9 +164,9 @@ func (p *Project) Create() error {
 	}
 
 	// create service/impl
-	// if _, err = os.Stat(fmt.Sprintf("%s/service/impl", p.AbsolutePath)); os.IsNotExist(err) {
-	// 	cobra.CheckErr(os.Mkdir(fmt.Sprintf("%s/service/impl", p.AbsolutePath), 0751))
-	// }
+	if _, err = os.Stat(fmt.Sprintf("%s/service/impl", p.AbsolutePath)); os.IsNotExist(err) {
+		cobra.CheckErr(os.Mkdir(fmt.Sprintf("%s/service/impl", p.AbsolutePath), 0751))
+	}
 
 	// create license
 	return nil
