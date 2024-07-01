@@ -5,11 +5,12 @@
 package internal
 
 import (
+	"strings"
+	"time"
+
 	"github.com/wwengg/simple/core/sconfig"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"strings"
-	"time"
 )
 
 // ZapEncodeLevel 根据 EncodeLevel 返回 zapcore.LevelEncoder
@@ -73,7 +74,7 @@ func getEncoderConfig(config *sconfig.Slog) zapcore.EncoderConfig {
 		StacktraceKey:  config.StacktraceKey,
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapEncodeLevel(config),
-		EncodeTime:     customTimeEncoder,
+		EncodeTime:     customTimeEncoder(config.Prefix),
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.FullCallerEncoder,
 	}
@@ -86,9 +87,10 @@ func getEncoderCore(l zapcore.Level, level zap.LevelEnablerFunc, config *sconfig
 }
 
 // CustomTimeEncoder 自定义日志输出时间格式
-func customTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
-	//encoder.AppendString(config.Prefix + t.Format("2006/01/02 - 15:04:05.000"))
-	encoder.AppendString(t.Format("2006/01/02 - 15:04:05.000"))
+func customTimeEncoder(prefix string) func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+	return func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+		encoder.AppendString(prefix + t.Format("2006/01/02 - 15:04:05.000"))
+	}
 }
 
 // GetZapCores 根据配置文件的Level获取 []zapcore.Core
