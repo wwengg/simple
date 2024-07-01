@@ -5,6 +5,7 @@
 package internal
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -89,7 +90,7 @@ func getEncoderCore(l zapcore.Level, level zap.LevelEnablerFunc, config *sconfig
 // CustomTimeEncoder 自定义日志输出时间格式
 func customTimeEncoder(prefix string) func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 	return func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
-		encoder.AppendString(prefix + t.Format("2006/01/02 - 15:04:05.000"))
+		encoder.AppendString(fmt.Sprintf("[%s]", prefix) + t.Format("2006/01/02 - 15:04:05.000"))
 	}
 }
 
