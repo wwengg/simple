@@ -73,7 +73,7 @@ message Find{{ .CmdParent }}Args{
   {{ .CmdParent }}Model query = 2;
 }
 
-message Find{{ .CmdParent }}Replay{
+message Find{{ .CmdParent }}Reply{
   pbcommon.EnumCode code = 1;
   string msg = 2;
   {{ .CmdParent }}Model data =3;
@@ -85,7 +85,7 @@ service {{ .CmdParent }} {
   rpc Create{{ .CmdParent }}({{ .CmdParent }}Model) returns(pbcommon.CommonResult){}
   rpc Update{{ .CmdParent }}({{ .CmdParent }}Model) returns(pbcommon.CommonResult){}
   rpc Delete{{ .CmdParent }}(pbcommon.IdArgs) returns(pbcommon.CommonResult){}
-  rpc Find{{ .CmdParent }}ById(pbcommon.IdArgs) returns(Find{{ .CmdParent }}Replay){}
-  rpc Find{{ .CmdParent }}List(Find{{ .CmdParent }}Args) returns(Find{{ .CmdParent }}Replay){}
+  rpc Find{{ .CmdParent }}ById(pbcommon.IdArgs) returns(Find{{ .CmdParent }}Reply){}
+  rpc Find{{ .CmdParent }}List(Find{{ .CmdParent }}Args) returns(Find{{ .CmdParent }}Reply){}
 }`)
 }
