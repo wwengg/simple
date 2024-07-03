@@ -114,11 +114,11 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+		// home, err := os.UserHomeDir()
+		// cobra.CheckErr(err)
 
 		// Search config in home directory with name ".{{ .AppName }}" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath("./")
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("{{ .AppName }}")
 	}
@@ -149,7 +149,18 @@ func initConfig() {
 }
 
 func ConfigYamlTemplate() []byte {
-	return []byte(`rpc-service:
+	return []byte(`slog:
+  level: info
+  format: console
+  director: log
+  encode-level: LowercaseColorLevelEncoder
+  stacktrace-key: stacktrace
+  max-age: 30
+  show-line: true
+  log-in-console: true
+  prefix: nb
+
+rpc-service:
   service-addr: 127.0.0.1
   port: 9001
 
