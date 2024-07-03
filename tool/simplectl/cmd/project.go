@@ -76,7 +76,7 @@ func (p *Project) Create() error {
 	}
 	defer configFile.Close()
 
-	configTemplate := template.Must(template.New("configYaml").Parse(string(tpl.ConfigYamlTemplate())))
+	configTemplate := template.Must(template.New("configYaml").Parse(string(tpl.ConfigYamlTemplate(p.AppName))))
 	err = configTemplate.Execute(configFile, p)
 	if err != nil {
 		return err
