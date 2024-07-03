@@ -1,5 +1,7 @@
 package tpl
 
+import "fmt"
+
 func MainTemplate() []byte {
 	return []byte(`/*
 {{ .Copyright }}
@@ -148,8 +150,8 @@ func initConfig() {
 `)
 }
 
-func ConfigYamlTemplate() []byte {
-	return []byte(`slog:
+func ConfigYamlTemplate(appName string) []byte {
+	return []byte(fmt.Sprintf(`slog:
   level: info
   format: console
   director: log
@@ -158,7 +160,7 @@ func ConfigYamlTemplate() []byte {
   max-age: 30
   show-line: true
   log-in-console: true
-  prefix: nb
+  prefix: %s
 
 rpc-service:
   service-addr: 127.0.0.1
@@ -190,5 +192,5 @@ db-list:
     max-idle-conns: 10
     max-open-conns: 100
     log-mode: error
-    log-zap: true`)
+    log-zap: true`, appName))
 }
