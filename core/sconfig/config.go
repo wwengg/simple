@@ -16,4 +16,5 @@ type Config struct {
 	Redis      Redis           `mapstructure:"redis" yaml:"redis" json:"redis"`
 	RootPath   string          `yaml:"root-path" json:"rootPath" mapstructure:"root-path"`
 	DBList     []SpecializedDB `mapstructure:"db-list" json:"db-list" yaml:"db-list"`
+	Jaeger     Jaeger          `mapstructure:"jaeger" json:"jaeger" yaml:"jaeger"`
 }

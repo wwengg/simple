@@ -57,7 +57,7 @@ to quickly create a Cobra application.` + "`" + `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		global.CONFIG.Slog.Prefix = fmt.Sprintf(`%s %d`, global.CONFIG.Slog.Prefix, os.Getpid())
+		global.CONFIG.Slog.Prefix = fmt.Sprintf("%s %d", global.CONFIG.Slog.Prefix, os.Getpid())
 		global.InitSlog()
 		global.InitSRPC()
 		global.InitDB()
