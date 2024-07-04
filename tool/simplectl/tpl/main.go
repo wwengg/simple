@@ -29,6 +29,10 @@ import (
 	"github.com/wwengg/simple/core/sconfig"
 	"github.com/wwengg/simple/core/srpc"
 	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/cloudflare/tableflip"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"{{ .PkgName }}/global"
@@ -53,6 +57,7 @@ to quickly create a Cobra application.` + "`" + `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
+		global.CONFIG.Slog.Prefix = fmt.Sprintf(`%s %d`, global.CONFIG.Slog.Prefix, os.Getpid())
 		global.InitSlog()
 		global.InitSRPC()
 		global.InitDB()
@@ -62,7 +67,7 @@ to quickly create a Cobra application.` + "`" + `,
 		//	model.ServerInfo{},
 		//)
 		
-		global.LOG.Error({{ .AppName }}Serve(global.CONFIG.RPC, global.CONFIG.RpcService).Error())
+		{{ .AppName }}Serve(global.CONFIG.RPC, global.CONFIG.RpcService)
 	},
 }
 
@@ -95,17 +100,53 @@ func init() {
 // {{ .AppName }}Serve starts a server only registers one service.
 // You can register more services and only start one server.
 // It blocks until the application exits.
-func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) error {
+func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) {
+	upg, err := tableflip.New(tableflip.Options{
+		PIDFile: "",
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer upg.Stop()
+
+	// Do an upgrade on SIGHUP
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGHUP)
+		for range sig {
+			err := upg.Upgrade()
+			if err != nil {
+				global.LOG.Errorf("Upgrade failed: %v", err)
+			}
+		}
+	}()
+
 	s := server.NewServer()
 	// 开启rpcx监控
 	s.EnableProfile = true
+	// 关闭rpcxgateway
+	s.DisableHTTPGateway = true
 	// 服务注册中心
 	srpc.AddRegistryPlugin(s, rpc, rpcService)
 
 	// 在此处注册服务
 	//s.RegisterName("Example", new(service.Example), "")
 
-	return s.Serve("tcp", fmt.Sprintf("%s:%s", rpcService.ServiceAddr, rpcService.Port))
+	// Listen must be called before Ready
+	ln, err := upg.Listen("tcp", fmt.Sprintf("%s:%s", global.CONFIG.RpcService.ServiceAddr, global.CONFIG.RpcService.Port))
+	if err != nil {
+		global.LOG.Errorf("Can't listen: %v", err)
+	}
+	go func() {
+		global.LOG.Error(s.ServeListener("tcp", ln).Error())
+	}()
+	global.LOG.Info("ready")
+	if err := upg.Ready(); err != nil {
+		panic(err)
+	}
+	<-upg.Exit()
+	global.LOG.Infof("s.Close()")
+	s.Close()
 }
 
 {{ if .Viper -}}
