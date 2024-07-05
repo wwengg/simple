@@ -73,7 +73,6 @@ func GenerateSpanWithContext(ctx context.Context, operationName string) (opentra
 	if err != nil {
 		return nil, nil, err
 	}
-	//把metdata 携带的 traceid,spanid,parentSpanid 放入 context
-	ctx = context.WithValue(context.Background(), share.ReqMetaDataKey, (map[string]string)(metadata))
+	ctx = context.WithValue(ctx, share.ReqMetaDataKey, (map[string]string)(metadata))
 	return span, ctx, nil
 }
