@@ -7,11 +7,12 @@ package srpc
 import (
 	"context"
 	"fmt"
+	"sync"
+	"sync/atomic"
+
 	"github.com/smallnest/rpcx/client"
 	"github.com/smallnest/rpcx/protocol"
 	"github.com/wwengg/simple/core/sconfig"
-	"sync"
-	"sync/atomic"
 )
 
 type OptionSRPCClients func(s *RPCXClients)
@@ -77,7 +78,7 @@ func NewSRPCClients(config *sconfig.RPC, opts ...OptionSRPCClients) *RPCXClients
 
 }
 
-func (s *RPCXClients) RPC(servicePath string, serviceMethod string, payload []byte, serializeType protocol.SerializeType, oneway bool) (meta map[string]string, resp []byte, err error) {
+func (s *RPCXClients) RPC(ctx context.Context, servicePath string, serviceMethod string, payload []byte, serializeType protocol.SerializeType, oneway bool) (meta map[string]string, resp []byte, err error) {
 	req := protocol.NewMessage()
 	req.SetMessageType(protocol.Request)
 
@@ -105,15 +106,15 @@ func (s *RPCXClients) RPC(servicePath string, serviceMethod string, payload []by
 		return nil, nil, err
 	}
 
-	return xc.SendRaw(context.Background(), req)
+	return xc.SendRaw(ctx, req)
 }
 
-func (s *RPCXClients) RPCProtobuf(servicePath string, serviceMethod string, payload []byte) (meta map[string]string, resp []byte, err error) {
-	return s.RPC(servicePath, serviceMethod, payload, protocol.ProtoBuffer, false)
+func (s *RPCXClients) RPCProtobuf(ctx context.Context, servicePath string, serviceMethod string, payload []byte) (meta map[string]string, resp []byte, err error) {
+	return s.RPC(ctx, servicePath, serviceMethod, payload, protocol.ProtoBuffer, false)
 }
 
-func (s *RPCXClients) RPCJson(servicePath string, serviceMethod string, payload []byte) (meta map[string]string, resp []byte, err error) {
-	return s.RPC(servicePath, serviceMethod, payload, protocol.JSON, false)
+func (s *RPCXClients) RPCJson(ctx context.Context, servicePath string, serviceMethod string, payload []byte) (meta map[string]string, resp []byte, err error) {
+	return s.RPC(ctx, servicePath, serviceMethod, payload, protocol.JSON, false)
 }
 
 func (s *RPCXClients) GetXClient(servicePath string) (xc client.XClient, err error) {
