@@ -78,6 +78,21 @@ func NewSRPCClients(config *sconfig.RPC, opts ...OptionSRPCClients) *RPCXClients
 
 }
 
+func (s *RPCXClients) GetReq(servicePath string, serviceMethod string) *protocol.Message {
+	req := protocol.NewMessage()
+	req.SetMessageType(protocol.Request)
+	// servivePath
+	req.ServicePath = servicePath
+
+	// serviceMethod
+	req.ServiceMethod = serviceMethod
+
+	seq := atomic.AddUint64(&s.seq, 1)
+	req.SetSeq(seq)
+
+	return req
+}
+
 func (s *RPCXClients) RPC(ctx context.Context, servicePath string, serviceMethod string, payload []byte, serializeType protocol.SerializeType, oneway bool) (meta map[string]string, resp []byte, err error) {
 	req := protocol.NewMessage()
 	req.SetMessageType(protocol.Request)
@@ -99,9 +114,7 @@ func (s *RPCXClients) RPC(ctx context.Context, servicePath string, serviceMethod
 	req.SetSeq(seq)
 
 	var xc client.XClient
-	s.mu.Lock()
 	xc, err = s.GetXClient(servicePath)
-	s.mu.Unlock()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -118,7 +131,9 @@ func (s *RPCXClients) RPCJson(ctx context.Context, servicePath string, serviceMe
 }
 
 func (s *RPCXClients) GetXClient(servicePath string) (xc client.XClient, err error) {
+	s.mu.Lock()
 	defer func() {
+		s.mu.Unlock()
 		if e := recover(); e != nil {
 			if ee, ok := e.(error); ok {
 				err = ee

@@ -76,3 +76,29 @@ func GenerateSpanWithContext(ctx context.Context, operationName string) (opentra
 	ctx = context.WithValue(ctx, share.ReqMetaDataKey, (map[string]string)(metadata))
 	return span, ctx, nil
 }
+
+func GenerateSpanWithMap(md2 map[string]string, operationName string) (opentracing.Span, map[string]string, error) {
+	var span opentracing.Span
+
+	tracer := opentracing.GlobalTracer()
+
+	if md2 != nil {
+		carrier := opentracing.TextMapCarrier(md2)
+		spanContext, err := tracer.Extract(opentracing.TextMap, carrier)
+		if err != nil && err != opentracing.ErrSpanContextNotFound {
+			log.Printf("metadata error %s\n", err)
+			return nil, nil, err
+		}
+		span = tracer.StartSpan(operationName, ext.RPCServerOption(spanContext))
+	} else {
+		span = opentracing.StartSpan(operationName)
+	}
+
+	metadata := opentracing.TextMapCarrier(make(map[string]string))
+	err := tracer.Inject(span.Context(), opentracing.TextMap, metadata)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return span, metadata, nil
+}
