@@ -2,9 +2,10 @@ package plugin
 
 import (
 	"context"
-	"reflect"
+	"fmt"
 
 	"github.com/wwengg/simple/core/slog"
+	"go.uber.org/zap"
 )
 
 type RecordPlugin struct {
@@ -17,12 +18,12 @@ func NewRecordPlugin(slog slog.Slog) *RecordPlugin {
 	}
 }
 
-func (p *RecordPlugin) DoPreCall(ctx context.Context, serviceName, methodName string, args interface{}) (interface{}, error) {
-	p.logger.Infof("Start[%s][%s], args: %v", serviceName, methodName, reflect.ValueOf(args))
+func (p *RecordPlugin) PreCall(ctx context.Context, serviceName, methodName string, args interface{}) (interface{}, error) {
+	p.logger.Info(fmt.Sprintf("Start[%s][%s]", serviceName, methodName), zap.Any("args", args))
 	return args, nil
 }
 
-func (p *RecordPlugin) DoPostCall(ctx context.Context, serviceName, methodName string, args, reply interface{}, err error) (interface{}, error) {
-	p.logger.Infof("Finish[%s][%s], reply: %v", serviceName, methodName, reflect.ValueOf(reply))
+func (p *RecordPlugin) PostCall(ctx context.Context, serviceName, methodName string, args, reply interface{}, err error) (interface{}, error) {
+	p.logger.Info(fmt.Sprintf("Finish[%s][%s]", serviceName, methodName), zap.Any("reply", reply))
 	return reply, nil
 }

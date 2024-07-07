@@ -35,9 +35,9 @@ func InitSRPC() {
 	SRPC = srpc.NewSRPCClients(&CONFIG.RPC)
 }
 
-func InitDB() {
+func InitDB(log slog.Slog) {
 	// 初始化DBList
-	DBList = store.DBList(&CONFIG.DBList)
+	DBList = store.DBList(&CONFIG.DBList, log)
 }`)
 }
 

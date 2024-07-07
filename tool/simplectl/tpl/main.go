@@ -61,10 +61,10 @@ to quickly create a Cobra application.` + "`" + `,
 		global.CONFIG.Slog.Prefix = fmt.Sprintf("%s %d", global.CONFIG.Slog.Prefix, os.Getpid())
 		global.InitSlog()
 		global.InitSRPC()
-		global.InitDB()
+		global.InitDB(global.LOG)
 	
 		// 创建初始化数据库表
-		//DB.AutoMigrate(
+		//global.DB_.AutoMigrate(
 		//	model.ServerInfo{},
 		//)
 		
@@ -131,6 +131,10 @@ func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) {
 	} else {
 		global.LOG.Errorf("NewTracer error,%s", err.Error())
 	}
+
+	// 操作记录插件
+	recordPlugin := plugin.NewRecordPlugin(global.LOG)
+	s.Plugins.Add(recordPlugin)
 
 	// 开启rpcx监控
 	//s.EnableProfile = true
