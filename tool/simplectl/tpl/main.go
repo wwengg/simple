@@ -26,6 +26,7 @@ import (
 {{- if .Viper }}
 	"fmt"{{ end }}
 	"github.com/smallnest/rpcx/server"
+	"github.com/wwengg/simple/core/plugin"
 	"github.com/wwengg/simple/core/sconfig"
 	"github.com/wwengg/simple/core/srpc"
 	"os"
@@ -122,10 +123,20 @@ func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) {
 	}()
 
 	s := server.NewServer()
+	t, io, err := plugin.NewTracer(服务名称, global.CONFIG.Jaeger.Agent)
+	if err == nil {
+		defer io.Close()
+		p := plugin.NewJaegerPlugin(t)
+		s.Plugins.Add(p)
+	} else {
+		global.LOG.Errorf("NewTracer error,%s", err.Error())
+	}
+
 	// 开启rpcx监控
-	s.EnableProfile = true
+	//s.EnableProfile = true
 	// 关闭rpcxgateway
 	s.DisableHTTPGateway = true
+	s.DisableJSONRPC = true
 	// 服务注册中心
 	srpc.AddRegistryPlugin(s, rpc, rpcService)
 
@@ -233,5 +244,9 @@ db-list:
     max-idle-conns: 10
     max-open-conns: 100
     log-mode: error
-    log-zap: true`, appName))
+    log-zap: true
+
+
+	jaeger:
+	agent: 127.0.0.1:6831`, appName))
 }

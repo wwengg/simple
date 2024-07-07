@@ -6,10 +6,11 @@ package store
 
 import (
 	"github.com/wwengg/simple/core/sconfig"
+	"github.com/wwengg/simple/core/slog"
 	"gorm.io/gorm"
 )
 
-func DBList(config *[]sconfig.SpecializedDB) map[string]*gorm.DB {
+func DBList(config *[]sconfig.SpecializedDB, log slog.Slog) map[string]*gorm.DB {
 	dbMap := make(map[string]*gorm.DB)
 	for _, info := range *config {
 		if info.Disable {
@@ -17,7 +18,7 @@ func DBList(config *[]sconfig.SpecializedDB) map[string]*gorm.DB {
 		}
 		switch info.Type {
 		case "mysql":
-			dbMap[info.AliasName] = GormMysqlByConfig(sconfig.Mysql{GeneralDB: info.GeneralDB})
+			dbMap[info.AliasName] = GormMysqlByConfig(sconfig.Mysql{GeneralDB: info.GeneralDB}, log)
 		//case "mssql":
 		//	dbMap[info.AliasName] = GormMssqlByConfig(config.Mssql{GeneralDB: info.GeneralDB})
 		//case "pgsql":
