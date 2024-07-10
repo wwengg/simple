@@ -8,6 +8,7 @@ var S_CONF Config
 
 type Config struct {
 	Slog       Slog            `json:"slog" yaml:"slog" mapstructure:"slog"`
+	JWT        JWT             `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
 	Gateway    Gateway         `mapstructure:"gateway" json:"gateway" yaml:"gateway"`
 	RPC        RPC             `mapstructure:"rpc" yaml:"rpc" json:"rpc"`
 	RpcService RpcService      `mapstructure:"rpc-service" yaml:"rpc-service" json:"rpcService"`
