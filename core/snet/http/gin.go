@@ -45,7 +45,7 @@ func NewGinEngine(config *sconfig.Gateway) *GinEngine {
 }
 
 func (g *GinEngine) Serve() {
-	address := g.config.Addr
+	address := fmt.Sprintf("0.0.0.0:%d", g.config.Addr)
 
 	// windows or other
 	s := InitServer(address, g.engine)

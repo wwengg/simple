@@ -8,10 +8,9 @@
 package http
 
 import (
-	"time"
-
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 func InitServer(address string, router *gin.Engine) server {
