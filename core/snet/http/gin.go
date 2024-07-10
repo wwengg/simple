@@ -6,7 +6,6 @@ package http
 
 import (
 	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/wwengg/simple/core/sconfig"
 )
@@ -45,6 +44,7 @@ func NewGinEngine(config *sconfig.Gateway) *GinEngine {
 }
 
 func (g *GinEngine) Serve() {
+	address := fmt.Sprintf(":%d", g.config.Addr)
 	address := fmt.Sprintf("0.0.0.0:%d", g.config.Addr)
 
 	// windows or other
