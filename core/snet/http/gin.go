@@ -5,7 +5,7 @@
 package http
 
 import (
-	"fmt"
+	"net"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wwengg/simple/core/sconfig"
@@ -49,8 +49,17 @@ func (g *GinEngine) Serve() {
 
 	// windows or other
 	s := InitServer(address, g.engine)
-
-	_ = fmt.Errorf(s.ListenAndServe().Error())
+	ln, err := net.Listen("tcp4", address)
+	if err != nil {
+		panic(err)
+	}
+	type tcpKeepAliveListener struct {
+		*net.TCPListener
+	}
+	erred := s.Serve(tcpKeepAliveListener{ln.(*net.TCPListener)})
+	if erred != nil {
+		panic(erred)
+	}
 }
 
 func (g *GinEngine) AddPublicHandle(route string) {
