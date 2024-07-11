@@ -8,7 +8,6 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/smallnest/rpcx/protocol"
-	"github.com/smallnest/rpcx/share"
 )
 
 type JaegerPlugin struct {
@@ -28,16 +27,13 @@ func (p *JaegerPlugin) PostReadRequest(ctx context.Context, r *protocol.Message,
 		return nil
 	}
 	operationName := fmt.Sprintf("rpcx:%s.%s", sp, sm)
-	md := ctx.Value(share.ReqMetaDataKey) // share.ReqMetaDataKey 固定值 "__req_metadata"  可自定义
-	var span opentracing.Span
 
+	var span opentracing.Span
+	var md opentracing.TextMapCarrier
 	tracer := opentracing.GlobalTracer()
-	if md == nil {
+	if r.Metadata != nil {
 		md = r.Metadata
-	}
-	if md != nil {
-		carrier := opentracing.TextMapCarrier(md.(map[string]string))
-		spanContext, err := tracer.Extract(opentracing.TextMap, carrier)
+		spanContext, err := tracer.Extract(opentracing.TextMap, md)
 		if err != nil && err != opentracing.ErrSpanContextNotFound {
 			log.Printf("metadata error %s\n", err)
 			return nil
@@ -45,15 +41,14 @@ func (p *JaegerPlugin) PostReadRequest(ctx context.Context, r *protocol.Message,
 		span = tracer.StartSpan(operationName, ext.RPCServerOption(spanContext))
 	} else {
 		span = opentracing.StartSpan(operationName)
+		md = make(map[string]string)
 	}
 
-	metadata := opentracing.TextMapCarrier(make(map[string]string))
-	err := tracer.Inject(span.Context(), opentracing.TextMap, metadata)
+	err := tracer.Inject(span.Context(), opentracing.TextMap, md)
 	if err != nil {
 		return nil
 	}
-
-	ctx = context.WithValue(ctx, share.ReqMetaDataKey, (map[string]string)(metadata))
+	r.Metadata = md
 	p.span = span
 	return nil
 }
