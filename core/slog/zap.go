@@ -5,6 +5,7 @@
 package slog
 
 import (
+	"context"
 	"fmt"
 	"github.com/wwengg/simple/core/sconfig"
 	"github.com/wwengg/simple/core/slog/internal"
@@ -15,6 +16,18 @@ import (
 )
 
 //type Field = zap.Field
+
+var sLogInstance Slog = NewZapLog(&sconfig.Slog{
+	Level:         "debug",
+	Format:        "console",
+	Director:      "log",
+	EncodeLevel:   "LowercaseColorLevelEncoder",
+	StacktraceKey: "stacktrace",
+	Prefix:        "slog",
+	MaxAge:        30,
+	ShowLine:      true,
+	LogInConsole:  true,
+})
 
 type Zap struct {
 	logger *zap.Logger
@@ -77,4 +90,39 @@ func (z *Zap) Errorf(format string, a ...interface{}) {
 
 func (z *Zap) Warnf(format string, a ...interface{}) {
 	z.sugar.Warnf(format, a)
+}
+
+func (z *Zap) InfoF(format string, v ...interface{}) {
+	z.sugar.Infof(format, v...)
+}
+
+func (z *Zap) ErrorF(format string, v ...interface{}) {
+	z.sugar.Errorf(format, v...)
+}
+
+func (z *Zap) DebugF(format string, v ...interface{}) {
+	z.sugar.Debugf(format, v...)
+}
+
+func (z *Zap) InfoFX(ctx context.Context, format string, v ...interface{}) {
+	fmt.Println(ctx)
+	z.sugar.Infof(format, v...)
+}
+
+func (z *Zap) ErrorFX(ctx context.Context, format string, v ...interface{}) {
+	fmt.Println(ctx)
+	z.sugar.Errorf(format, v...)
+}
+
+func (z *Zap) DebugFX(ctx context.Context, format string, v ...interface{}) {
+	fmt.Println(ctx)
+	z.sugar.Debugf(format, v...)
+}
+
+func SetLog(slog Slog) {
+	sLogInstance = slog
+}
+
+func Ins() Slog {
+	return sLogInstance
 }

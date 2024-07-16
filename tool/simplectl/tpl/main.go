@@ -29,6 +29,7 @@ import (
 	"github.com/wwengg/simple/core/plugin"
 	"github.com/wwengg/simple/core/sconfig"
 	"github.com/wwengg/simple/core/srpc"
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -161,7 +162,7 @@ func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) {
 	}
 	<-upg.Exit()
 	global.LOG.Infof("s.Close()")
-	s.Close()
+	_ = s.Shutdown(context.Background())
 }
 
 {{ if .Viper -}}
