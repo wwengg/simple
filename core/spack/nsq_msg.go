@@ -22,9 +22,11 @@ const (
 )
 
 type NSQMsg struct {
-	PkgLen uint32
-	Cmd    uint32
-	Seq    uint32
-	Ret    uint16
-	Data   []byte
+	//PkgLen        uint32  // nsq不存在粘包问题 不需要
+	Cmd           uint16
+	Seq           uint64
+	Ret           uint16
+	SerializeType byte
+	CompressType  byte
+	Data          []byte
 }
