@@ -78,8 +78,8 @@ func (r *Task) GetData() []byte {
 	return r.msg.GetData()
 }
 
-func (r *Task) GetMsgID() uint32 {
-	return r.msg.GetMsgID()
+func (r *Task) GetMsgID() uint16 {
+	return r.msg.GetCmd()
 }
 
 func (r *Task) BindRouter(router sface.SRouter) {

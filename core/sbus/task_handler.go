@@ -1,10 +1,12 @@
 package sbus
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"github.com/wwengg/simple/core/sbus/sface"
 	"github.com/wwengg/simple/core/slog"
+	"sync"
 )
 
 type TaskHandler struct {
@@ -15,9 +17,15 @@ type TaskHandler struct {
 	// A message queue for workers to take tasks
 	// (Worker负责取任务的消息队列)
 	TaskQueue chan sface.STask
+
+	ctx    context.Context
+	cancel context.CancelFunc
+
+	//消费完TaskQueue内所有数据
+	wg sync.WaitGroup
 }
 
-func newTaskHandler(workPoolSize, maxTaskQueueLen uint32) *TaskHandler {
+func NewTaskHandler(workPoolSize, maxTaskQueueLen uint32) *TaskHandler {
 	var freeWorkers map[uint32]struct{}
 	freeWorkers = make(map[uint32]struct{}, workPoolSize)
 	for i := uint32(0); i < workPoolSize; i++ {
@@ -44,9 +52,9 @@ func (mh *TaskHandler) AddRouter(msgID int32, router sface.SRouter) {
 	slog.Ins().Infof("Add Router msgID = %d", msgID)
 }
 
-// SendMsgToTaskQueue sends the message to the TaskQueue for processing by the worker
+// SendTaskToTaskQueue sends the message to the TaskQueue for processing by the worker
 // (将消息交给TaskQueue,由worker进行处理)
-func (mh *TaskHandler) SendMsgToTaskQueue(task sface.STask) {
+func (mh *TaskHandler) SendTaskToTaskQueue(task sface.STask) {
 
 	mh.TaskQueue <- task
 	slog.Ins().Debugf("SendMsgToTaskQueue-->%s", hex.EncodeToString(task.GetData()))
@@ -73,14 +81,14 @@ func (mh *TaskHandler) doMsgHandler(task sface.STask, workerID int) {
 	}()
 
 	msgId := task.GetMsgID()
-	handler, ok := mh.Apis[msgId]
+	handler, ok := mh.Apis[int32(msgId)]
 
 	if !ok {
 		slog.Ins().Errorf("api msgID = %d is not FOUND!", task.GetMsgID())
 		return
 	}
 
-	// Bind the Request request to the corresponding Router relationship
+	// Bind the Task request to the corresponding Router relationship
 	// (Request请求绑定Router对应关系)
 	task.BindRouter(handler)
 
@@ -95,6 +103,7 @@ func (mh *TaskHandler) doMsgHandler(task sface.STask, workerID int) {
 // (启动一个Worker工作流程)
 func (mh *TaskHandler) StartOneWorker(workerID int, taskQueue chan sface.STask) {
 	slog.Ins().Debugf("Worker ID = %d is started.", workerID)
+	defer mh.wg.Done()
 	// Continuously wait for messages in the queue
 	// (不断地等待队列中的消息)
 	for {
@@ -113,6 +122,10 @@ func (mh *TaskHandler) StartOneWorker(workerID int, taskQueue chan sface.STask) 
 			case sface.STask: // Client message request
 				mh.doMsgHandler(req, workerID)
 			}
+		case <-mh.ctx.Done():
+			l := len(taskQueue)
+			slog.Ins().Infof("[Nsq Writer exit! ctx.Done],msgBuffChanLen:%d", l)
+			return
 		}
 	}
 }
@@ -121,10 +134,18 @@ func (mh *TaskHandler) StartOneWorker(workerID int, taskQueue chan sface.STask) 
 func (mh *TaskHandler) StartWorkerPool() {
 	// Iterate through the required number of workers and start them one by one
 	// (遍历需要启动worker的数量，依此启动)
+	mh.ctx, mh.cancel = context.WithCancel(context.Background())
+
 	for i := 0; i < int(mh.WorkerPoolSize); i++ {
 
 		// Start the current worker, blocking and waiting for messages to be passed in the corresponding task queue
 		// (启动当前Worker，阻塞的等待对应的任务队列是否有消息传递进来)
+		mh.wg.Add(1)
 		go mh.StartOneWorker(i, mh.TaskQueue)
 	}
+}
+
+func (mh *TaskHandler) Stop() {
+	mh.cancel()
+	mh.wg.Wait()
 }

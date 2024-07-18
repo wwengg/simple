@@ -12,7 +12,7 @@ type STask interface {
 	GetConnection() snet.SConnection // Get the connection information of the request(获取请求连接信息)
 
 	GetData() []byte  // Get the data of the request message(获取请求消息的数据)
-	GetMsgID() uint32 // Get the message ID of the request(获取请求的消息ID)
+	GetMsgID() uint16 // Get the message ID of the request(获取请求的消息ID)
 
 	GetMessage() SMsg // Get the raw data of the request message (获取请求消息的原始数据 add by uuxia 2023-03-10)
 
@@ -35,7 +35,7 @@ type BaseRequest struct{}
 
 func (br *BaseRequest) GetConnection() snet.SConnection { return nil }
 func (br *BaseRequest) GetData() []byte                 { return nil }
-func (br *BaseRequest) GetMsgID() uint32                { return 0 }
+func (br *BaseRequest) GetMsgID() uint16                { return 0 }
 func (br *BaseRequest) GetMessage() SMsg                { return nil }
 func (br *BaseRequest) BindRouter(router SRouter)       {}
 func (br *BaseRequest) Call()                           {}
