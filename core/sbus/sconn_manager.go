@@ -1,4 +1,4 @@
-package snet
+package sbus
 
 type SConnManager interface {
 }

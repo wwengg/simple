@@ -1,4 +1,4 @@
-package sface
+package sbus
 
 type SRouter interface {
 	PreHandle(task STask)  //Hook method before processing conn business(在处理conn业务之前的钩子方法)

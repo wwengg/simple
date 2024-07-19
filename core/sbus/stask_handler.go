@@ -1,4 +1,4 @@
-package sface
+package sbus
 
 type STaskHandler interface {
 	AddRouter(msgID int32, router SRouter)

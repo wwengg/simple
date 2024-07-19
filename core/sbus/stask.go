@@ -1,6 +1,4 @@
-package sface
-
-import "github.com/wwengg/simple/core/snet"
+package sbus
 
 type HandleStep int
 
@@ -9,7 +7,7 @@ type SFuncTask interface {
 }
 
 type STask interface {
-	GetConnection() snet.SConnection // Get the connection information of the request(获取请求连接信息)
+	GetConnection() SConnection // Get the connection information of the request(获取请求连接信息)
 
 	GetData() []byte  // Get the data of the request message(获取请求消息的数据)
 	GetMsgID() uint16 // Get the message ID of the request(获取请求的消息ID)
@@ -33,13 +31,13 @@ type STask interface {
 
 type BaseRequest struct{}
 
-func (br *BaseRequest) GetConnection() snet.SConnection { return nil }
-func (br *BaseRequest) GetData() []byte                 { return nil }
-func (br *BaseRequest) GetMsgID() uint16                { return 0 }
-func (br *BaseRequest) GetMessage() SMsg                { return nil }
-func (br *BaseRequest) BindRouter(router SRouter)       {}
-func (br *BaseRequest) Call()                           {}
-func (br *BaseRequest) Abort()                          {}
+func (br *BaseRequest) GetConnection() SConnection { return nil }
+func (br *BaseRequest) GetData() []byte            { return nil }
+func (br *BaseRequest) GetMsgID() uint16           { return 0 }
+func (br *BaseRequest) GetMessage() SMsg           { return nil }
+func (br *BaseRequest) BindRouter(router SRouter)  {}
+func (br *BaseRequest) Call()                      {}
+func (br *BaseRequest) Abort()                     {}
 
 func (br *BaseRequest) Set(key string, value interface{}) {}
 

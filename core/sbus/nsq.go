@@ -5,10 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nsqio/go-nsq"
-	"github.com/wwengg/simple/core/sbus/sface"
 	"github.com/wwengg/simple/core/slog"
-	"github.com/wwengg/simple/core/snet"
-	"github.com/wwengg/simple/core/spack"
 	"runtime"
 	"strconv"
 	"sync"
@@ -149,13 +146,13 @@ func PutNsqData(nsqData *NsqData) {
 }
 
 type Nsq struct {
-	snet.BaseConnection
+	BaseConnection
 	producers []*NsqProducer
 	Consumers []*NsqConsumer
 
 	// The message management module that manages MsgID and the corresponding processing method
 	// (消息管理MsgID和对应处理方法的消息管理模块)
-	taskHandler sface.STaskHandler
+	taskHandler STaskHandler
 	// Buffered channel used for message communication between the read and write goroutines
 	// (有缓冲管道，用于读、写两个goroutine之间的消息通信)
 	NsqDataBuffChan   chan *NsqData
@@ -202,7 +199,7 @@ func NewNsq(workPoolSize, maxTaskQueueLen, maxNsqDataChanLen uint32, channel, ns
 	return n
 }
 
-func (n *Nsq) AddRouter(topic string, msgID int32, router sface.SRouter) {
+func (n *Nsq) AddRouter(topic string, msgID int32, router SRouter) {
 	n.taskHandler.AddRouter(msgID, router)
 	if v, ok := TopicEnum_value[topic]; ok {
 		slog.Ins().Infof("already created Consumer,Topic=%s msgId=%d,repeatedMsgId=%d", topic, msgID, v)
@@ -267,7 +264,7 @@ func (n *Nsq) HandleMessage(message *nsq.Message) error {
 			slog.Ins().Errorf("panic in HandleMessage: %v, stack: %s", err, errStack[:n])
 		}
 	}()
-	if msg, err := spack.NsqDataPackObj.Unpack(message.Body); err != nil {
+	if msg, err := NsqDataPackObj.Unpack(message.Body); err != nil {
 		return err
 	} else {
 		task := GetTask(n, msg)

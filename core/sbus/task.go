@@ -1,15 +1,13 @@
 package sbus
 
 import (
-	"github.com/wwengg/simple/core/sbus/sface"
-	"github.com/wwengg/simple/core/snet"
 	"sync"
 )
 
 const (
-	PRE_HANDLE  sface.HandleStep = iota // PreHandle for pre-processing
-	HANDLE                              // Handle for processing
-	POST_HANDLE                         // PostHandle for post-processing
+	PRE_HANDLE  HandleStep = iota // PreHandle for pre-processing
+	HANDLE                        // Handle for processing
+	POST_HANDLE                   // PostHandle for post-processing
 
 	HANDLE_OVER
 )
@@ -22,7 +20,7 @@ func init() {
 	}
 }
 
-func allocateTask() sface.STask {
+func allocateTask() STask {
 	task := new(Task)
 	task.steps = PRE_HANDLE
 	task.needNext = true
@@ -31,18 +29,18 @@ func allocateTask() sface.STask {
 }
 
 type Task struct {
-	sface.BaseRequest
-	conn     snet.SConnection
-	msg      sface.SMsg
-	router   sface.SRouter          // the router that handles this request(请求处理的函数)
-	steps    sface.HandleStep       // used to control the execution of router functions(用来控制路由函数执行)
+	BaseRequest
+	conn     SConnection
+	msg      SMsg
+	router   SRouter                // the router that handles this request(请求处理的函数)
+	steps    HandleStep             // used to control the execution of router functions(用来控制路由函数执行)
 	stepLock sync.RWMutex           // concurrency lock(并发互斥)
 	needNext bool                   // whether to execute the next router function(是否需要执行下一个路由函数)
 	index    int8                   // router function slice index(路由函数切片索引)
 	keys     map[string]interface{} // keys 路由处理时可能会存取的上下文信息
 }
 
-func (r *Task) Reset(conn snet.SConnection, msg sface.SMsg) {
+func (r *Task) Reset(conn SConnection, msg SMsg) {
 	r.steps = PRE_HANDLE
 	r.conn = conn
 	r.msg = msg
@@ -51,7 +49,7 @@ func (r *Task) Reset(conn snet.SConnection, msg sface.SMsg) {
 	r.keys = nil
 }
 
-func GetTask(conn snet.SConnection, msg sface.SMsg) sface.STask {
+func GetTask(conn SConnection, msg SMsg) STask {
 
 	// 根据当前模式判断是否使用对象池
 
@@ -62,15 +60,15 @@ func GetTask(conn snet.SConnection, msg sface.SMsg) sface.STask {
 	return r
 }
 
-func PutTask(task sface.STask) {
+func PutTask(task STask) {
 	TaskPool.Put(task)
 }
 
-func (r *Task) GetMessage() sface.SMsg {
+func (r *Task) GetMessage() SMsg {
 	return r.msg
 }
 
-func (r *Task) GetConnection() snet.SConnection {
+func (r *Task) GetConnection() SConnection {
 	return r.conn
 }
 
@@ -82,7 +80,7 @@ func (r *Task) GetMsgID() uint16 {
 	return r.msg.GetCmd()
 }
 
-func (r *Task) BindRouter(router sface.SRouter) {
+func (r *Task) BindRouter(router SRouter) {
 	r.router = router
 }
 

@@ -1,12 +1,12 @@
-package spack
+package sbus
 
 import (
 	"bytes"
 	"encoding/binary"
 	"errors"
 	"github.com/smallnest/rpcx/util"
-	"github.com/wwengg/simple/core/sbus/sface"
 	"github.com/wwengg/simple/core/slog"
+	"github.com/wwengg/simple/core/smsg"
 	"runtime"
 )
 
@@ -21,13 +21,13 @@ var ErrMetaKVMissing = errors.New("wrong metadata lines. some keys or values are
 
 //+------+-------+---------+---------------+--------------+-------------+-------+------------+--------------+-------------+------------+
 //| CMD  |  Ret  | version | SerializeType | CompressType | messageType |  seq  |  meta len  |   meta data  |   data len  |    data    |
-//| 2字节 |  2字节 |  1字节  |     4bit      |     3bit     |      1bit   | 8字节  |    4字节    |     n字节    |      4字节   |    n字节    |
+//| 2字节 |  2字节 |  1字节  |     4bit      |     2bit     |      2bit   | 8字节  |    4字节    |     n字节    |      4字节   |    n字节    |
 //+------+-------+---------+---------------+--------------+-------------+-------+------------+--------------+-------------+------------+
 //|                                 header                                      |
 //|                                 13字节                                       |
 //+-----------------------------------------------------------------------------+
 
-func NewNsqDataPack() sface.SDataPack { return &NsqDataPack{} }
+func NewNsqDataPack() SDataPack { return &NsqDataPack{} }
 
 func (dp *NsqDataPack) GetHeadLen() uint32 {
 	//ID uint32(4 bytes) +  DataLen uint32(4 bytes)
@@ -36,7 +36,7 @@ func (dp *NsqDataPack) GetHeadLen() uint32 {
 
 // Pack packs the message (compresses the data)
 // (封包方法,压缩数据)
-func (dp *NsqDataPack) Pack(msg sface.SMsg) ([]byte, error) {
+func (dp *NsqDataPack) Pack(msg SMsg) ([]byte, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			var errStack = make([]byte, 1024)
@@ -66,9 +66,9 @@ func (dp *NsqDataPack) Pack(msg sface.SMsg) ([]byte, error) {
 	// SerializeType
 	oneByte[0] = (oneByte[0] &^ 0xF0) | (byte(msg.GetSerializeType()) << 4)
 	// CompressType
-	oneByte[0] = (oneByte[0] &^ 0x1C) | ((byte(msg.GetCompressType()) << 1) & 0x1C)
+	oneByte[0] = (oneByte[0] &^ 0x1C) | ((byte(msg.GetCompressType()) << 2) & 0x1C)
 	// messageType
-	oneByte[0] = oneByte[0] | (byte(msg.GetMessageType()))
+	oneByte[0] = (oneByte[0] &^ 0x03) | (byte(msg.GetMessageType()) & 0x03)
 	// Write the oneByte
 	if err := binary.Write(dataBuff, binary.BigEndian, oneByte); err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (dp *NsqDataPack) Pack(msg sface.SMsg) ([]byte, error) {
 
 // Unpack unpacks the message (decompresses the data)
 // (拆包方法,解压数据)
-func (dp *NsqDataPack) Unpack(binaryData []byte) (sface.SMsg, error) {
+func (dp *NsqDataPack) Unpack(binaryData []byte) (SMsg, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			var errStack = make([]byte, 1024)
@@ -126,16 +126,20 @@ func (dp *NsqDataPack) Unpack(binaryData []byte) (sface.SMsg, error) {
 	if err := binary.Read(dataBuff, binary.BigEndian, &msg.Ret); err != nil {
 		return nil, err
 	}
+	// Read the Version
+	if err := binary.Read(dataBuff, binary.BigEndian, &msg.Version); err != nil {
+		return nil, err
+	}
 	onebyte := [1]byte{}
 	if err := binary.Read(dataBuff, binary.BigEndian, &onebyte); err != nil {
 		return nil, err
 	}
 	// Read the SerializeType
-	msg.SerializeType = SerializeType((onebyte[0] & 0xF0) >> 4)
+	msg.SerializeType = smsg.SerializeType((onebyte[0] & 0xF0) >> 4)
 	// Read the CompressType
-	msg.CompressType = CompressType((onebyte[0] & 0x1C) >> 1)
+	msg.CompressType = smsg.CompressType((onebyte[0] & 0x1C) >> 2)
 	// Read the MessageType
-	msg.MessageType = MessageType(onebyte[0] & 0x80)
+	msg.MessageType = smsg.MessageType(onebyte[0] & 0x03)
 	// Read the seq
 	if err := binary.Read(dataBuff, binary.BigEndian, &msg.Seq); err != nil {
 		return nil, err

@@ -4,19 +4,18 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/wwengg/simple/core/sbus/sface"
 	"github.com/wwengg/simple/core/slog"
 	"sync"
 )
 
 type TaskHandler struct {
-	Apis map[int32]sface.SRouter
+	Apis map[int32]SRouter
 	// The number of worker goroutines in the business work Worker pool
 	// (业务工作Worker池的数量)
 	WorkerPoolSize uint32
 	// A message queue for workers to take tasks
 	// (Worker负责取任务的消息队列)
-	TaskQueue chan sface.STask
+	TaskQueue chan STask
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -32,14 +31,14 @@ func NewTaskHandler(workPoolSize, maxTaskQueueLen uint32) *TaskHandler {
 		freeWorkers[i] = struct{}{}
 	}
 	handler := &TaskHandler{
-		Apis:           make(map[int32]sface.SRouter),
+		Apis:           make(map[int32]SRouter),
 		WorkerPoolSize: workPoolSize,
-		TaskQueue:      make(chan sface.STask, maxTaskQueueLen),
+		TaskQueue:      make(chan STask, maxTaskQueueLen),
 	}
 	return handler
 }
 
-func (mh *TaskHandler) AddRouter(msgID int32, router sface.SRouter) {
+func (mh *TaskHandler) AddRouter(msgID int32, router SRouter) {
 	// 1. Check whether the current API processing method bound to the msgID already exists
 	// (判断当前msg绑定的API处理方法是否已经存在)
 	if _, ok := mh.Apis[msgID]; ok {
@@ -54,14 +53,14 @@ func (mh *TaskHandler) AddRouter(msgID int32, router sface.SRouter) {
 
 // SendTaskToTaskQueue sends the message to the TaskQueue for processing by the worker
 // (将消息交给TaskQueue,由worker进行处理)
-func (mh *TaskHandler) SendTaskToTaskQueue(task sface.STask) {
+func (mh *TaskHandler) SendTaskToTaskQueue(task STask) {
 
 	mh.TaskQueue <- task
 	slog.Ins().Debugf("SendMsgToTaskQueue-->%s", hex.EncodeToString(task.GetData()))
 }
 
 // doFuncHandler handles functional requests (执行函数式请求)
-func (mh *TaskHandler) doFuncHandler(task sface.SFuncTask, workerID int) {
+func (mh *TaskHandler) doFuncHandler(task SFuncTask, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
 			slog.Ins().Errorf("workerID: %d doFuncRequest panic: %v", workerID, err)
@@ -73,7 +72,7 @@ func (mh *TaskHandler) doFuncHandler(task sface.SFuncTask, workerID int) {
 
 // doMsgHandler immediately handles messages in a non-blocking manner
 // (立即以非阻塞方式处理消息)
-func (mh *TaskHandler) doMsgHandler(task sface.STask, workerID int) {
+func (mh *TaskHandler) doMsgHandler(task STask, workerID int) {
 	defer func() {
 		if err := recover(); err != nil {
 			slog.Ins().Errorf("workerID: %d doMsgHandler panic: %v", workerID, err)
@@ -101,7 +100,7 @@ func (mh *TaskHandler) doMsgHandler(task sface.STask, workerID int) {
 
 // StartOneWorker starts a worker workflow
 // (启动一个Worker工作流程)
-func (mh *TaskHandler) StartOneWorker(workerID int, taskQueue chan sface.STask) {
+func (mh *TaskHandler) StartOneWorker(workerID int, taskQueue chan STask) {
 	slog.Ins().Debugf("Worker ID = %d is started.", workerID)
 	defer mh.wg.Done()
 	// Continuously wait for messages in the queue
@@ -114,12 +113,12 @@ func (mh *TaskHandler) StartOneWorker(workerID int, taskQueue chan sface.STask) 
 
 			switch req := task.(type) {
 
-			case sface.SFuncTask:
+			case SFuncTask:
 				// Internal function call request (内部函数调用request)
 
 				mh.doFuncHandler(req, workerID)
 
-			case sface.STask: // Client message request
+			case STask: // Client message request
 				mh.doMsgHandler(req, workerID)
 			}
 		case <-mh.ctx.Done():

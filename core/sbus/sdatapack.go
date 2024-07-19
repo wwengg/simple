@@ -1,4 +1,4 @@
-package sface
+package sbus
 
 type SDataPack interface {
 	GetHeadLen() uint32

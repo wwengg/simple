@@ -1,6 +1,4 @@
-package sface
-
-import "github.com/wwengg/simple/core/snet"
+package sbus
 
 type SHeartbeatChecker interface {
 	SetOnRemoteNotAlive(OnRemoteNotAlive)
@@ -10,7 +8,7 @@ type SHeartbeatChecker interface {
 	Start()
 	Stop()
 	SendHeartBeatMsg() error
-	BindConn(connection snet.SConnection)
+	BindConn(connection SConnection)
 	Clone() SHeartbeatChecker
 	MsgID() uint32
 	Router() SRouter
@@ -18,15 +16,15 @@ type SHeartbeatChecker interface {
 
 // User-defined method for handling heartbeat detection messages
 // (用户自定义的心跳检测消息处理方法)
-type HeartBeatMsgFunc func(connection snet.SConnection) []byte
+type HeartBeatMsgFunc func(connection SConnection) []byte
 
 // HeartBeatFunc User-defined heartbeat function
 // (用户自定义心跳函数)
-type HeartBeatFunc func(connection snet.SConnection) error
+type HeartBeatFunc func(connection SConnection) error
 
 // OnRemoteNotAlive User-defined method for handling remote connections that are not alive
 // 用户自定义的远程连接不存活时的处理方法
-type OnRemoteNotAlive func(connection snet.SConnection)
+type OnRemoteNotAlive func(connection SConnection)
 
 type HeartBeatOption struct {
 	MakeMsg          HeartBeatMsgFunc // User-defined method for handling heartbeat detection messages(用户自定义的心跳检测消息处理方法)
