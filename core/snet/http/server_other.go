@@ -10,6 +10,7 @@ package http
 import (
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
+	"github.com/quic-go/quic-go/http3"
 	"time"
 )
 
@@ -18,5 +19,6 @@ func InitServer(address string, router *gin.Engine) server {
 	s.ReadHeaderTimeout = 20 * time.Second
 	s.WriteTimeout = 20 * time.Second
 	s.MaxHeaderBytes = 1 << 20
+	http3.ListenAndServe()
 	return s
 }

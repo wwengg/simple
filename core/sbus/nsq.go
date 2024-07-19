@@ -150,39 +150,36 @@ type Nsq struct {
 	producers []*NsqProducer
 	Consumers []*NsqConsumer
 
-	// The message management module that manages MsgID and the corresponding processing method
-	// (消息管理MsgID和对应处理方法的消息管理模块)
-	taskHandler STaskHandler
 	// Buffered channel used for message communication between the read and write goroutines
 	// (有缓冲管道，用于读、写两个goroutine之间的消息通信)
 	NsqDataBuffChan   chan *NsqData
 	MaxNsqDataChanLen uint32
-	//消费完管道内所有数据
+	//发布完管道内所有数据
 	wg sync.WaitGroup
 
-	// Go StartWriter Flag
-	// (开始初始化写协程标志)
-	startWriterFlag int32
 	// Channel to notify that the connection has exited/stopped
 	// (告知nsq退出/停止的channel)
 	ctx    context.Context
 	cancel context.CancelFunc
 
 	//info
-	channel       string
-	nsqLookupAddr string
-	concurrency   int
-	maxInFlight   int
+	channel         string
+	nsqLookupAddr   string
+	concurrency     int
+	maxInFlight     int
+	startWriterFlag int32
 }
 
 func NewNsq(workPoolSize, maxTaskQueueLen, maxNsqDataChanLen uint32, channel, nsqLookupAddr string, concurrency, maxInFlight int, nsqdList []string) *Nsq {
 	taskHandler := NewTaskHandler(workPoolSize, maxTaskQueueLen)
 	n := &Nsq{
+		BaseConnection: BaseConnection{
+			taskHandler: taskHandler,
+		},
+		startWriterFlag:   0,
 		producers:         make([]*NsqProducer, 0),
 		Consumers:         make([]*NsqConsumer, 0),
-		taskHandler:       taskHandler,
 		MaxNsqDataChanLen: maxNsqDataChanLen,
-		startWriterFlag:   0,
 		channel:           channel,
 		nsqLookupAddr:     nsqLookupAddr,
 		concurrency:       concurrency,
@@ -197,6 +194,10 @@ func NewNsq(workPoolSize, maxTaskQueueLen, maxNsqDataChanLen uint32, channel, ns
 	}
 
 	return n
+}
+
+func (n *Nsq) setStartWriterFlag() bool {
+	return atomic.CompareAndSwapInt32(&n.startWriterFlag, 0, 1)
 }
 
 func (n *Nsq) AddRouter(topic string, msgID int32, router SRouter) {
@@ -251,10 +252,6 @@ func (n *Nsq) SendToMsgBuffChan(topic string, data []byte) error {
 
 }
 
-func (n *Nsq) isClosed() bool {
-	return n.ctx == nil || n.ctx.Err() != nil
-}
-
 func (n *Nsq) HandleMessage(message *nsq.Message) error {
 	defer func() {
 		if err := recover(); err != nil {
@@ -273,9 +270,6 @@ func (n *Nsq) HandleMessage(message *nsq.Message) error {
 
 	return nil
 }
-func (n *Nsq) setStartWriterFlag() bool {
-	return atomic.CompareAndSwapInt32(&n.startWriterFlag, 0, 1)
-}
 
 func (n *Nsq) StartWriter(p *NsqProducer) {
 	slog.Ins().Infof("Nsq Writer Goroutine is running")
@@ -287,6 +281,7 @@ func (n *Nsq) StartWriter(p *NsqProducer) {
 			if ok {
 				if err := p.PublishDirect(nsqData.Topic, nsqData.data); err != nil {
 					slog.Ins().Errorf("Send Buff Data error:, %s NsqProducer Publish error", err)
+					// 失败的消息丢回管道 重新发
 					if err = n.SendToMsgBuffChan(nsqData.Topic, nsqData.data); err == nil {
 						slog.Ins().Errorf("SendToMsgBuffChan error:%s,", err.Error())
 					}
