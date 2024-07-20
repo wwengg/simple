@@ -22,8 +22,8 @@ func NewWsConnection(cID uint64, taskHandler STaskHandler, conn *websocket.Conn,
 			onConnStart:    onConnStart,
 			onConnStop:     onConnStop,
 			datapack:       datapack,
-			sendFunc:       sendFunc(conn),
-			readFunc:       readFunc(conn),
+			sendFunc:       wsSendFunc(conn),
+			readFunc:       wsReadFunc(conn),
 			property:       nil,
 			IOReadBuffSize: 0,
 		},
@@ -31,14 +31,17 @@ func NewWsConnection(cID uint64, taskHandler STaskHandler, conn *websocket.Conn,
 	}
 }
 
-func sendFunc(wsConn *websocket.Conn) func([]byte) error {
+func wsSendFunc(wsConn *websocket.Conn) func([]byte) error {
 	return func(data []byte) error {
 		return wsConn.WriteMessage(websocket.BinaryMessage, data)
 	}
 }
 
-func readFunc(wsConn *websocket.Conn) func(conn SConnection, buffer []byte) (n int, err error) {
+func wsReadFunc(wsConn *websocket.Conn) func(conn SConnection, buffer []byte) (n int, err error) {
 	return func(conn SConnection, buffer []byte) (n int, err error) {
+		if len(buffer) != 0 {
+			buffer = buffer[len(buffer):]
+		}
 		messageType, buffer, err := wsConn.ReadMessage()
 		if err != nil {
 			conn.Stop()
