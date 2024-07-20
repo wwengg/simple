@@ -48,6 +48,7 @@ func PutMsgData(msgData *MsgData) {
 }
 
 type BaseConnection struct {
+	conn net.Conn
 	// The ID of the current connection, also known as SessionID, globally unique, used by server Connection
 	// uint64 range: 0~18,446,744,073,709,551,615
 	// This is the maximum number of connID theoretically supported by the process
