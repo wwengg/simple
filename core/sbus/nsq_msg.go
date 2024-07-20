@@ -4,6 +4,19 @@ import (
 	"github.com/wwengg/simple/core/smsg"
 )
 
+type SMsg interface {
+	GetMsgId() int32
+	GetCmd() uint16 // Gets the ID of the message(获取消息ID)
+	GetRet() uint16
+	GetVersion() uint8
+	GetSerializeType() smsg.SerializeType
+	GetCompressType() smsg.CompressType
+	GetMessageType() smsg.MessageType
+	GetSeq() uint64
+	GetMeta() map[string]string
+	GetData() []byte // Gets the content of the message(获取消息内容)
+}
+
 type NSQMsg struct {
 	//*Header
 	//PkgLen        uint32  // nsq不存在粘包问题 不需要
@@ -31,7 +44,9 @@ func NewNSQMsg(Cmd uint16, ret uint16, sType smsg.SerializeType, md map[string]s
 		Data:          data,
 	}
 }
-
+func (m *NSQMsg) GetMsgId() int32 {
+	return int32(m.Cmd)
+}
 func (m *NSQMsg) GetCmd() uint16 {
 	return m.Cmd
 }

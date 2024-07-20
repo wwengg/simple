@@ -3,11 +3,10 @@ package sbus
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/wwengg/simple/core/slog"
 	"net"
 	"sync"
-	"syscall"
-	"time"
 )
 
 type MsgData struct {
@@ -47,8 +46,42 @@ func PutMsgData(msgData *MsgData) {
 	MsgDataPool.Put(msgData)
 }
 
-type BaseConnection struct {
-	conn net.Conn
+type SConnection interface {
+	// Start the connection, make the current connection start working
+	// (启动连接，让当前连接开始工作)
+	Start()
+	// Stop the connection and end the current connection state
+	// (停止连接，结束当前连接状态)
+	Stop()
+
+	// Returns ctx, used by user-defined go routines to obtain connection exit status
+	// (返回ctx，用于用户自定义的go程获取连接退出状态)
+	Context() context.Context
+
+	GetConnID() uint64            // Get the current connection ID (获取当前连接ID)
+	GetConnIdStr() string         // Get the current connection ID for string (获取当前字符串连接ID)
+	GetTaskHandler() STaskHandler // Get the message handler (获取消息处理器)
+	RemoteAddr() net.Addr         // Get the remote address information of the connection (获取链接远程地址信息)
+	LocalAddr() net.Addr          // Get the local address information of the connection (获取链接本地地址信息)
+	LocalAddrString() string      // Get the local address information of the connection as a string
+	RemoteAddrString() string     // Get the remote address information of the connection as a string
+
+	SendData(data []byte) error // Send data to the message queue to be sent to the remote TCP client later
+	SendMsg(msg SMsg) error
+
+	SetProperty(key string, value string)   // Set connection property
+	GetProperty(key string) (string, error) // Get connection property
+	RemoveProperty(key string)              // Remove connection property
+	IsAlive() bool                          // Check if the current connection is alive(判断当前连接是否存活)
+	SetHeartBeat(checker SHeartbeatChecker) // Set the heartbeat detector (设置心跳检测器)
+
+	//AddCloseCallback(handler, key interface{}, callback func()) // Add a close callback function (添加关闭回调函数)
+	//RemoveCloseCallback(handler, key interface{})               // Remove a close callback function (删除关闭回调函数)
+	//InvokeCloseCallbacks()                                      // Trigger the close callback function (触发关闭回调函数，独立协程完成)
+}
+
+type Connection struct {
+	Conn net.Conn
 	// The ID of the current connection, also known as SessionID, globally unique, used by server Connection
 	// uint64 range: 0~18,446,744,073,709,551,615
 	// This is the maximum number of connID theoretically supported by the process
@@ -79,9 +112,6 @@ type BaseConnection struct {
 
 	Datapack SDataPack
 
-	SendFunc func([]byte) error
-	ReadFunc func(conn SConnection, buffer []byte) (n int, err error)
-
 	// msgLock is used for locking when users send and receive messages.
 	// (用户收发消息的Lock)
 	msgLock sync.RWMutex
@@ -95,25 +125,40 @@ type BaseConnection struct {
 	IOReadBuffSize uint32
 }
 
-func (bc *BaseConnection) callOnConnStart() {
+func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack) SConnection {
+	return &Connection{
+		Conn:           conn,
+		ConnID:         connId,
+		ConnIdStr:      fmt.Sprintf("%d", connId),
+		TaskHandler:    taskHandler,
+		OnConnStart:    OnConnStart,
+		OnConnStop:     OnConnStop,
+		FrameDecoder:   frameDecoder,
+		Datapack:       datapack,
+		Property:       nil,
+		IOReadBuffSize: 0,
+	}
+}
+
+func (bc *Connection) callOnConnStart() {
 	if bc.OnConnStart != nil {
 		slog.Ins().Infof("CallOnConnStart....")
 		bc.OnConnStart(bc)
 	}
 }
 
-func (bc *BaseConnection) callOnConnStop() {
+func (bc *Connection) callOnConnStop() {
 	if bc.OnConnStop != nil {
 		slog.Ins().Infof("CallOnConnStart....")
 		bc.OnConnStop(bc)
 	}
 }
 
-func (bc *BaseConnection) isClosed() bool {
+func (bc *Connection) isClosed() bool {
 	return bc.ctx == nil || bc.ctx.Err() != nil
 }
 
-func (bc *BaseConnection) StartReader() {
+func (bc *Connection) StartReader() {
 	slog.Ins().Infof("[Reader Goroutine is running]")
 	defer slog.Ins().Infof("%s [conn Reader exit!]", bc.ConnIdStr)
 	defer bc.Stop()
@@ -132,8 +177,8 @@ func (bc *BaseConnection) StartReader() {
 			// 停止循环 不读了，连接断开啦！！
 			return
 		default:
-			if n, err := bc.ReadFunc(bc, buffer); err != nil {
-				slog.Ins().Error(err.Error())
+			if n, err := bc.Conn.Read(buffer); err != nil {
+				slog.Ins().Errorf("read msg head [read datalen=%d], error = %s", n, err)
 				return
 			} else {
 				if n == 0 {
@@ -184,7 +229,7 @@ func (bc *BaseConnection) StartReader() {
 }
 
 // Start()
-func (bc *BaseConnection) Start() {
+func (bc *Connection) Start() {
 	bc.ctx, bc.cancel = context.WithCancel(context.Background())
 
 	bc.callOnConnStart()
@@ -201,26 +246,26 @@ func (bc *BaseConnection) Start() {
 		return
 	}
 }
-func (bc *BaseConnection) Stop() {
+func (bc *Connection) Stop() {
 	bc.cancel()
 }
-func (bc *BaseConnection) Context() context.Context {
+func (bc *Connection) Context() context.Context {
 	return bc.ctx
 }
-func (bc *BaseConnection) GetConnID() uint64 {
+func (bc *Connection) GetConnID() uint64 {
 	return bc.ConnID
 }
-func (bc *BaseConnection) GetConnIdStr() string {
+func (bc *Connection) GetConnIdStr() string {
 	return bc.ConnIdStr
 }
-func (bc *BaseConnection) GetTaskHandler() STaskHandler {
+func (bc *Connection) GetTaskHandler() STaskHandler {
 	return bc.TaskHandler
 }
-func (bc *BaseConnection) RemoteAddr() net.Addr     { return nil }
-func (bc *BaseConnection) LocalAddr() net.Addr      { return nil }
-func (bc *BaseConnection) LocalAddrString() string  { return "" }
-func (bc *BaseConnection) RemoteAddrString() string { return "" }
-func (bc *BaseConnection) SendData(data []byte) error {
+func (bc *Connection) RemoteAddr() net.Addr     { return nil }
+func (bc *Connection) LocalAddr() net.Addr      { return nil }
+func (bc *Connection) LocalAddrString() string  { return "" }
+func (bc *Connection) RemoteAddrString() string { return "" }
+func (bc *Connection) SendData(data []byte) error {
 	bc.msgLock.RLock()
 	defer bc.msgLock.RUnlock()
 	defer func() {
@@ -231,15 +276,21 @@ func (bc *BaseConnection) SendData(data []byte) error {
 	if bc.isClosed() == true {
 		return errors.New("Connection closed when send Data")
 	}
-	err := bc.SendFunc(data)
+	_, err := bc.Conn.Write(data)
 	if err != nil {
 		slog.Ins().Errorf("SendMsg err data = %+v, err = %+v", data, err)
 		return err
 	}
 	return nil
 }
-func (bc *BaseConnection) SendMsg(msgID uint32, data []byte) error { return nil }
-func (bc *BaseConnection) SetProperty(key string, value string) {
+func (bc *Connection) SendMsg(msg SMsg) error {
+	if data, err := bc.Datapack.Pack(msg); err == nil {
+		return bc.SendData(data)
+	} else {
+		return err
+	}
+}
+func (bc *Connection) SetProperty(key string, value string) {
 	bc.propertyLock.Lock()
 	defer bc.propertyLock.Unlock()
 	if bc.Property == nil {
@@ -248,7 +299,7 @@ func (bc *BaseConnection) SetProperty(key string, value string) {
 
 	bc.Property[key] = value
 }
-func (bc *BaseConnection) GetProperty(key string) (string, error) {
+func (bc *Connection) GetProperty(key string) (string, error) {
 	bc.propertyLock.Lock()
 	defer bc.propertyLock.Unlock()
 
@@ -258,46 +309,15 @@ func (bc *BaseConnection) GetProperty(key string) (string, error) {
 
 	return "", errors.New("no property found")
 }
-func (bc *BaseConnection) RemoveProperty(key string) {
+func (bc *Connection) RemoveProperty(key string) {
 	bc.propertyLock.Lock()
 	defer bc.propertyLock.Unlock()
 
 	delete(bc.Property, key)
 }
-func (bc *BaseConnection) IsAlive() bool                          { return true }
-func (bc *BaseConnection) SetHeartBeat(checker SHeartbeatChecker) {}
+func (bc *Connection) IsAlive() bool                          { return true }
+func (bc *Connection) SetHeartBeat(checker SHeartbeatChecker) {}
 
 // func (bc *BaseConnection) AddCloseCallback(handler, key interface{}, callback func()) {}
 // func (bc *BaseConnection) RemoveCloseCallback(handler, key interface{})               {}
 // func (bc *BaseConnection) InvokeCloseCallbacks()
-//
-// Read implements the Conn Read method.
-func (bc *BaseConnection) Read(b []byte) (int, error) {
-	return 0, nil
-}
-
-// Write implements the Conn Write method.
-func (bc *BaseConnection) Write(b []byte) (int, error) {
-	return 0, nil
-}
-
-// Close closes the connection.
-func (bc *BaseConnection) Close() error { return nil }
-
-// SetDeadline sets the deadline associated with the listener. A zero time value disables the deadline.
-func (bc *BaseConnection) SetDeadline(t time.Time) error { return nil }
-
-// SetReadDeadline implements the Conn SetReadDeadline method.
-func (bc *BaseConnection) SetReadDeadline(t time.Time) error { return nil }
-
-// SetWriteDeadline implements the Conn SetWriteDeadline method.
-func (bc *BaseConnection) SetWriteDeadline(t time.Time) error { return nil }
-
-// SetReadBuffer sets the size of the operating system's receive buffer associated with the connection.
-func (bc *BaseConnection) SetReadBuffer(bytes int) error { return nil }
-
-// SetWriteBuffer sets the size of the operating system's transmit buffer associated with the connection.
-func (bc *BaseConnection) SetWriteBuffer(bytes int) error { return nil }
-
-// SyscallConn returns a raw network connection. This implements the syscall.Conn interface.
-func (bc *BaseConnection) SyscallConn() (syscall.RawConn, error) { return nil, nil }

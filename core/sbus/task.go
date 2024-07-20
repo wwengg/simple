@@ -76,7 +76,11 @@ func (r *Task) GetData() []byte {
 	return r.msg.GetData()
 }
 
-func (r *Task) GetMsgID() uint16 {
+func (r *Task) GetMsgID() int32 {
+	return r.msg.GetMsgId()
+}
+
+func (r *Task) GetCmd() uint16 {
 	return r.msg.GetCmd()
 }
 

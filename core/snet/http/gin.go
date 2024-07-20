@@ -7,7 +7,9 @@ package http
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/quic-go/quic-go/http3"
 	"github.com/wwengg/simple/core/sconfig"
+	"github.com/wwengg/simple/core/slog"
 )
 
 type GinEngine struct {
@@ -20,6 +22,7 @@ type GinEngine struct {
 
 func NewGinEngine(config *sconfig.Gateway) *GinEngine {
 	engine := gin.New()
+	engine.UseH2C = true
 
 	if config.PublicRouterPrefix == "" {
 		config.PublicRouterPrefix = "/"
@@ -43,13 +46,20 @@ func NewGinEngine(config *sconfig.Gateway) *GinEngine {
 	}
 }
 
-func (g *GinEngine) Serve() {
+func (g *GinEngine) Serve(certFile string, keyFile string) {
 	address := fmt.Sprintf(":%d", g.config.Addr)
+
+	go func() {
+		err := http3.ListenAndServe(address, certFile, keyFile, g.engine)
+		if err != nil {
+			slog.Ins().Error(err.Error())
+			return
+		}
+	}()
 
 	// windows or other
 	s := InitServer(address, g.engine)
-
-	_ = fmt.Errorf(s.ListenAndServe().Error())
+	slog.Ins().Error(s.ListenAndServe().Error())
 }
 
 func (g *GinEngine) AddPublicHandle(route string) {

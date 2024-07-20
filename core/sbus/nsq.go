@@ -146,9 +146,12 @@ func PutNsqData(nsqData *NsqData) {
 }
 
 type Nsq struct {
-	BaseConnection
-	producers []*NsqProducer
-	Consumers []*NsqConsumer
+	//BaseConnection
+	// The message management module that manages MsgID and the corresponding processing method
+	// (消息管理MsgID和对应处理方法的消息管理模块)
+	taskHandler STaskHandler
+	producers   []*NsqProducer
+	Consumers   []*NsqConsumer
 
 	// Buffered channel used for message communication between the read and write goroutines
 	// (有缓冲管道，用于读、写两个goroutine之间的消息通信)
@@ -173,9 +176,10 @@ type Nsq struct {
 func NewNsq(workPoolSize, maxTaskQueueLen, maxNsqDataChanLen uint32, channel, nsqLookupAddr string, concurrency, maxInFlight int, nsqdList []string) *Nsq {
 	taskHandler := NewTaskHandler(workPoolSize, maxTaskQueueLen)
 	n := &Nsq{
-		BaseConnection: BaseConnection{
-			taskHandler: taskHandler,
-		},
+		//BaseConnection: BaseConnection{
+		//	TaskHandler: taskHandler,
+		//},
+		taskHandler:       taskHandler,
 		startWriterFlag:   0,
 		producers:         make([]*NsqProducer, 0),
 		Consumers:         make([]*NsqConsumer, 0),
@@ -264,7 +268,7 @@ func (n *Nsq) HandleMessage(message *nsq.Message) error {
 	if msg, err := NsqDataPackObj.Unpack(message.Body); err != nil {
 		return err
 	} else {
-		task := GetTask(n, msg)
+		task := GetTask(nil, msg)
 		n.taskHandler.SendTaskToTaskQueue(task)
 	}
 
@@ -335,12 +339,14 @@ func (n *Nsq) Start() {
 // Stop stops the connection and ends the current connection state.
 // (停止连接，结束当前连接状态)
 func (n *Nsq) Stop() {
+	// 1.立即停止所有消费者，没有新的消息进来
+	// 2. 通知清空taskChan内的task后 关闭所有工作池
 	n.cancel()
-	n.wg.Wait() // 等管道内所有消息发完再退出
-	//管道数据清空后，等nsqd producer发完所有信息
+	// 等管道内所有数据发布完 ，结束所有Writer
+	n.wg.Wait()
+	// 让所有producer停止工作
 	for _, producer := range n.producers {
 		producer.producer.Stop()
 	}
-	// 确认taskWorkPool都消费完没
-	n.taskHandler.Stop()
+
 }

@@ -9,9 +9,9 @@ type SFuncTask interface {
 type STask interface {
 	GetConnection() SConnection // Get the connection information of the request(获取请求连接信息)
 
-	GetData() []byte  // Get the data of the request message(获取请求消息的数据)
-	GetMsgID() uint16 // Get the message ID of the request(获取请求的消息ID)
-
+	GetData() []byte // Get the data of the request message(获取请求消息的数据)
+	GetMsgID() int32 // Get the message ID of the request(获取请求的消息ID)
+	GetCmd() uint16
 	GetMessage() SMsg // Get the raw data of the request message (获取请求消息的原始数据 add by uuxia 2023-03-10)
 
 	BindRouter(router SRouter) // Bind which router handles this request(绑定这次请求由哪个路由处理)
@@ -33,7 +33,8 @@ type BaseRequest struct{}
 
 func (br *BaseRequest) GetConnection() SConnection { return nil }
 func (br *BaseRequest) GetData() []byte            { return nil }
-func (br *BaseRequest) GetMsgID() uint16           { return 0 }
+func (br *BaseRequest) GetMsgID() int32            { return 0 }
+func (br *BaseRequest) GetCmd() uint16             { return 0 }
 func (br *BaseRequest) GetMessage() SMsg           { return nil }
 func (br *BaseRequest) BindRouter(router SRouter)  {}
 func (br *BaseRequest) Call()                      {}

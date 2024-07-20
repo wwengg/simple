@@ -8,6 +8,13 @@ import (
 	"sync"
 )
 
+type STaskHandler interface {
+	AddRouter(msgID int32, router SRouter)
+	StartWorkerPool()               //  Start the worker pool
+	SendTaskToTaskQueue(task STask) // Pass the message to the TaskQueue for processing by the worker(将消息交给TaskQueue,由worker进行处理)
+	Stop()
+}
+
 type TaskHandler struct {
 	Apis map[int32]SRouter
 	// The number of worker goroutines in the business work Worker pool
@@ -24,7 +31,7 @@ type TaskHandler struct {
 	wg sync.WaitGroup
 }
 
-func NewTaskHandler(workPoolSize, maxTaskQueueLen uint32) *TaskHandler {
+func NewTaskHandler(workPoolSize, maxTaskQueueLen uint32) STaskHandler {
 	var freeWorkers map[uint32]struct{}
 	freeWorkers = make(map[uint32]struct{}, workPoolSize)
 	for i := uint32(0); i < workPoolSize; i++ {
@@ -80,7 +87,7 @@ func (mh *TaskHandler) doMsgHandler(task STask, workerID int) {
 	}()
 
 	msgId := task.GetMsgID()
-	handler, ok := mh.Apis[int32(msgId)]
+	handler, ok := mh.Apis[msgId]
 
 	if !ok {
 		slog.Ins().Errorf("api msgID = %d is not FOUND!", task.GetMsgID())
@@ -111,15 +118,15 @@ func (mh *TaskHandler) StartOneWorker(workerID int, taskQueue chan STask) {
 		// (有消息则取出队列的Request，并执行绑定的业务方法)
 		case task := <-taskQueue:
 
-			switch req := task.(type) {
+			switch task := task.(type) {
 
 			case SFuncTask:
 				// Internal function call request (内部函数调用request)
 
-				mh.doFuncHandler(req, workerID)
+				mh.doFuncHandler(task, workerID)
 
 			case STask: // Client message request
-				mh.doMsgHandler(req, workerID)
+				mh.doMsgHandler(task, workerID)
 			}
 		case <-mh.ctx.Done():
 			l := len(taskQueue)

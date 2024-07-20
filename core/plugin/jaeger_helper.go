@@ -46,6 +46,8 @@ func NewTracer(servicename string, addr string) (opentracing.Tracer, io.Closer, 
 	return tracer, closer, err
 }
 
+const JAEGER_KEY = "uber-trace-id"
+
 // 只适用于 jaeger
 // 原理用 context 传递 "__req_metadata":""uber-trace-id -> 6f8b8a1101b0124f:6f8b8a1101b0124f:0000000000000000:1
 //
