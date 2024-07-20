@@ -1,5 +1,5 @@
 package sbus
 
 type SFrameDecoder interface {
-	Decode(buff []byte) [][]byte
+	Decode(buff []byte) ([][]byte, error)
 }
