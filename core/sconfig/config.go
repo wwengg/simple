@@ -16,4 +16,6 @@ type Config struct {
 	RootPath   string          `yaml:"root-path" json:"rootPath" mapstructure:"root-path"`
 	DBList     []SpecializedDB `mapstructure:"db-list" json:"db-list" yaml:"db-list"`
 	Jaeger     Jaeger          `mapstructure:"jaeger" json:"jaeger" yaml:"jaeger"`
+	CertPath   string          `mapstructure:"cert-path" json:"certPath" yaml:"cert-path"`
+	KeyPath    string          `mapstructure:"key-path" json:"keyPath" yaml:"key-path"`
 }

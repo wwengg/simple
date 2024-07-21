@@ -189,11 +189,12 @@ func NewNsq(workPoolSize, maxTaskQueueLen, maxNsqDataChanLen uint32, channel, ns
 		concurrency:       concurrency,
 		maxInFlight:       maxInFlight,
 	}
-	for _, addr := range nsqdList {
+	for i, addr := range nsqdList {
 		if p, err := NewProducer(addr); err != nil {
 			panic(err)
 		} else {
 			n.producers = append(n.producers, p)
+			slog.Ins().Infof("[nsq] add producer [%d]", i)
 		}
 	}
 
@@ -317,10 +318,12 @@ func (n *Nsq) Start() {
 	// 开启taskWorkPool
 	n.taskHandler.StartWorkerPool()
 	// 启动nsq consumer
-	for _, consumer := range n.Consumers {
+	for i, consumer := range n.Consumers {
 		err := consumer.StartReader(n)
 		if err != nil {
 			panic(err)
+		} else {
+			slog.Ins().Infof("[nsq] consumer.StartReader [%d]", i)
 		}
 	}
 
@@ -345,8 +348,9 @@ func (n *Nsq) Stop() {
 	// 等管道内所有数据发布完 ，结束所有Writer
 	n.wg.Wait()
 	// 让所有producer停止工作
-	for _, producer := range n.producers {
+	for i, producer := range n.producers {
 		producer.producer.Stop()
+		slog.Ins().Infof("[nsq] producer.Stop [%d]", i)
 	}
 
 }
