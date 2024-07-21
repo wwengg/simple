@@ -8,14 +8,14 @@ import (
 )
 
 type WsConnection struct {
-	BaseConnection
+	Connection
 	// conn is the current connection's WebSocket socket TCP socket. (当前连接的socket TCP套接字)
 	conn *websocket.Conn
 }
 
 func NewWsConnection(cID uint64, taskHandler STaskHandler, conn *websocket.Conn, onConnStart, onConnStop func(conn SConnection), datapack SDataPack) SConnection {
 	return &WsConnection{
-		BaseConnection: BaseConnection{
+		Connection: Connection{
 			ConnID:         cID,
 			ConnIdStr:      fmt.Sprintf("%d", cID),
 			TaskHandler:    taskHandler,
