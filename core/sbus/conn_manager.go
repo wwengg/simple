@@ -8,25 +8,25 @@ import (
 )
 
 type ConnManager struct {
-	connections utils.ShardLockMaps
+	Connections utils.ShardLockMaps
 }
 
-func newConnManager() *ConnManager {
+func NewConnManager() *ConnManager {
 	return &ConnManager{
-		connections: utils.NewShardLockMaps(),
+		Connections: utils.NewShardLockMaps(),
 	}
 }
 
 func (connMgr *ConnManager) Add(conn SConnection) {
 
-	connMgr.connections.Set(conn.GetConnIdStr(), conn) // 将conn连接添加到ConnManager中
+	connMgr.Connections.Set(conn.GetConnIdStr(), conn) // 将conn连接添加到ConnManager中
 
 	slog.Ins().Debugf("connection add to ConnManager successfully: conn num = %d", connMgr.Len())
 }
 
 func (connMgr *ConnManager) Remove(conn SConnection) {
 
-	connMgr.connections.Remove(conn.GetConnIdStr()) // 删除连接信息
+	connMgr.Connections.Remove(conn.GetConnIdStr()) // 删除连接信息
 
 	slog.Ins().Debugf("connection Remove ConnID=%d successfully: conn num = %d", conn.GetConnID(), connMgr.Len())
 }
@@ -34,7 +34,7 @@ func (connMgr *ConnManager) Remove(conn SConnection) {
 func (connMgr *ConnManager) Get(connID uint64) (SConnection, error) {
 
 	strConnId := strconv.FormatUint(connID, 10)
-	if conn, ok := connMgr.connections.Get(strConnId); ok {
+	if conn, ok := connMgr.Connections.Get(strConnId); ok {
 		return conn.(SConnection), nil
 	}
 
@@ -44,7 +44,7 @@ func (connMgr *ConnManager) Get(connID uint64) (SConnection, error) {
 // Get2 It is recommended to use this method to obtain connection instances
 func (connMgr *ConnManager) Get2(strConnId string) (SConnection, error) {
 
-	if conn, ok := connMgr.connections.Get(strConnId); ok {
+	if conn, ok := connMgr.Connections.Get(strConnId); ok {
 		return conn.(SConnection), nil
 	}
 
@@ -53,7 +53,7 @@ func (connMgr *ConnManager) Get2(strConnId string) (SConnection, error) {
 
 func (connMgr *ConnManager) Len() int {
 
-	length := connMgr.connections.Count()
+	length := connMgr.Connections.Count()
 
 	return length
 }
@@ -61,7 +61,7 @@ func (connMgr *ConnManager) Len() int {
 func (connMgr *ConnManager) ClearConn() {
 
 	// Stop and delete all connection information
-	for item := range connMgr.connections.IterBuffered() {
+	for item := range connMgr.Connections.IterBuffered() {
 		val := item.Val
 		if conn, ok := val.(SConnection); ok {
 			// stop will eventually trigger the deletion of the connection,
@@ -75,7 +75,7 @@ func (connMgr *ConnManager) ClearConn() {
 
 func (connMgr *ConnManager) GetAllConnID() []uint64 {
 
-	strConnIdList := connMgr.connections.Keys()
+	strConnIdList := connMgr.Connections.Keys()
 	ids := make([]uint64, 0, len(strConnIdList))
 
 	for _, strId := range strConnIdList {
@@ -91,12 +91,12 @@ func (connMgr *ConnManager) GetAllConnID() []uint64 {
 }
 
 func (connMgr *ConnManager) GetAllConnIdStr() []string {
-	return connMgr.connections.Keys()
+	return connMgr.Connections.Keys()
 }
 
 func (connMgr *ConnManager) Range(cb func(uint64, SConnection, interface{}) error, args interface{}) (err error) {
 
-	connMgr.connections.IterCb(func(key string, v interface{}) {
+	connMgr.Connections.IterCb(func(key string, v interface{}) {
 		conn, _ := v.(SConnection)
 		connId, _ := strconv.ParseUint(key, 10, 64)
 		err = cb(connId, conn, args)
@@ -111,7 +111,7 @@ func (connMgr *ConnManager) Range(cb func(uint64, SConnection, interface{}) erro
 // Range2 It is recommended to use this method to 'Range'
 func (connMgr *ConnManager) Range2(cb func(string, SConnection, interface{}) error, args interface{}) (err error) {
 
-	connMgr.connections.IterCb(func(key string, v interface{}) {
+	connMgr.Connections.IterCb(func(key string, v interface{}) {
 		conn, _ := v.(SConnection)
 		err = cb(conn.GetConnIdStr(), conn, args)
 		if err != nil {
