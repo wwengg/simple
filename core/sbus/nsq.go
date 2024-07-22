@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nsqio/go-nsq"
+	"github.com/wwengg/simple/core/sconfig"
 	"github.com/wwengg/simple/core/slog"
 	"runtime"
 	"strconv"
@@ -171,6 +172,34 @@ type Nsq struct {
 	concurrency     int
 	maxInFlight     int
 	startWriterFlag int32
+}
+
+func NewNsqByConf(nsq2 sconfig.Nsq) (*Nsq, error) {
+	taskHandler := NewTaskHandler(nsq2.WorkerPoolSize, nsq2.MaxTaskChanLen)
+	n := &Nsq{
+		//BaseConnection: BaseConnection{
+		//	TaskHandler: taskHandler,
+		//},
+		taskHandler:       taskHandler,
+		startWriterFlag:   0,
+		producers:         make([]*NsqProducer, 0),
+		Consumers:         make([]*NsqConsumer, 0),
+		MaxNsqDataChanLen: nsq2.MaxNsqDataChanLen,
+		channel:           nsq2.Channel,
+		nsqLookupAddr:     nsq2.NsqlookupdAddr,
+		concurrency:       nsq2.Concurrency,
+		maxInFlight:       nsq2.MaxInFlight,
+	}
+	for i, addr := range nsq2.NsqdAddrList {
+		if p, err := NewProducer(addr); err != nil {
+			return nil, err
+		} else {
+			n.producers = append(n.producers, p)
+			slog.Ins().Infof("[nsq] add producer [%d]", i)
+		}
+	}
+
+	return n, nil
 }
 
 func NewNsq(workPoolSize, maxTaskQueueLen, maxNsqDataChanLen uint32, channel, nsqLookupAddr string, concurrency, maxInFlight int, nsqdList []string) *Nsq {
