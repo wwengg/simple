@@ -172,9 +172,10 @@ type Nsq struct {
 	concurrency     int
 	maxInFlight     int
 	startWriterFlag int32
+	dataPack        SDataPack
 }
 
-func NewNsqByConf(nsq2 sconfig.Nsq) (*Nsq, error) {
+func NewNsqByConf(nsq2 sconfig.Nsq, dataPack SDataPack) (*Nsq, error) {
 	taskHandler := NewTaskHandler(nsq2.WorkerPoolSize, nsq2.MaxTaskChanLen)
 	n := &Nsq{
 		//BaseConnection: BaseConnection{
@@ -189,6 +190,7 @@ func NewNsqByConf(nsq2 sconfig.Nsq) (*Nsq, error) {
 		nsqLookupAddr:     nsq2.NsqlookupdAddr,
 		concurrency:       nsq2.Concurrency,
 		maxInFlight:       nsq2.MaxInFlight,
+		dataPack:          dataPack,
 	}
 	for i, addr := range nsq2.NsqdAddrList {
 		if p, err := NewProducer(addr); err != nil {
@@ -295,7 +297,12 @@ func (n *Nsq) HandleMessage(message *nsq.Message) error {
 			slog.Ins().Errorf("panic in HandleMessage: %v, stack: %s", err, errStack[:n])
 		}
 	}()
-	if msg, err := NsqDataPackObj.Unpack(message.Body); err != nil {
+	// 支持自定义dataPack
+	dataPack := n.dataPack
+	if dataPack == nil {
+		dataPack = NsqDataPackObj
+	}
+	if msg, err := dataPack.Unpack(message.Body); err != nil {
 		return err
 	} else {
 		task := GetTask(nil, msg)
