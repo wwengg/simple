@@ -77,19 +77,19 @@ func (z *Zap) Warn(msg string, fields ...Field) {
 }
 
 func (z *Zap) Infof(format string, a ...interface{}) {
-	z.sugar.Infof(format, a)
+	z.sugar.Infof(format, a...)
 }
 
 func (z *Zap) Debugf(format string, a ...interface{}) {
-	z.sugar.Debugf(format, a)
+	z.sugar.Debugf(format, a...)
 }
 
 func (z *Zap) Errorf(format string, a ...interface{}) {
-	z.sugar.Errorf(format, a)
+	z.sugar.Errorf(format, a...)
 }
 
 func (z *Zap) Warnf(format string, a ...interface{}) {
-	z.sugar.Warnf(format, a)
+	z.sugar.Warnf(format, a...)
 }
 
 func (z *Zap) InfoF(format string, v ...interface{}) {

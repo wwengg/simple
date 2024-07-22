@@ -142,14 +142,14 @@ func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnCon
 
 func (bc *Connection) callOnConnStart() {
 	if bc.OnConnStart != nil {
-		slog.Ins().Infof("CallOnConnStart....")
+		slog.Ins().Info("CallOnConnStart....")
 		bc.OnConnStart(bc)
 	}
 }
 
 func (bc *Connection) callOnConnStop() {
 	if bc.OnConnStop != nil {
-		slog.Ins().Infof("CallOnConnStart....")
+		slog.Ins().Info("callOnConnStop....")
 		bc.OnConnStop(bc)
 	}
 }
