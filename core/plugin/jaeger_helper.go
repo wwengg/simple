@@ -79,6 +79,21 @@ func GenerateSpanWithContext(ctx context.Context, operationName string) (opentra
 	return span, ctx, nil
 }
 
+// 不破坏原数据，返回追加了Jaeger_key的数据
+func GenerateSpanByMd(md map[string]string, operationName string) (opentracing.Span, map[string]string, error) {
+	v, ok := md[JAEGER_KEY]
+	md2 := make(map[string]string)
+	if ok {
+		md2[JAEGER_KEY] = v
+	}
+	if span, md3, err := GenerateSpanWithMap(md2, operationName); err == nil {
+		md[JAEGER_KEY] = md3[JAEGER_KEY]
+		return span, md, nil
+	} else {
+		return nil, nil, err
+	}
+}
+
 func GenerateSpanWithMap(md2 map[string]string, operationName string) (opentracing.Span, map[string]string, error) {
 	var span opentracing.Span
 

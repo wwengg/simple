@@ -79,7 +79,7 @@ func (dp *NsqDataPack) Pack(msg SMsg) ([]byte, error) {
 	}
 	// Write the meta
 	var bb = bytes.NewBuffer(make([]byte, 0, len(msg.GetMeta())*64))
-	encodeMetadata(msg.GetMeta(), bb)
+	EncodeMetadata(msg.GetMeta(), bb)
 	meta := bb.Bytes()
 	// Write the meta len
 	if err := binary.Write(dataBuff, binary.BigEndian, uint32(len(meta))); err != nil {
@@ -155,7 +155,7 @@ func (dp *NsqDataPack) Unpack(binaryData []byte) (SMsg, error) {
 		if err := binary.Read(dataBuff, binary.BigEndian, &metaData); err != nil {
 			return nil, err
 		}
-		if m, err := decodeMetadata(metaLen, metaData); err != nil {
+		if m, err := DecodeMetadata(metaLen, metaData); err != nil {
 			return nil, err
 		} else {
 			msg.Metadata = m
@@ -178,7 +178,7 @@ func (dp *NsqDataPack) Unpack(binaryData []byte) (SMsg, error) {
 }
 
 // len,string,len,string,......
-func encodeMetadata(m map[string]string, bb *bytes.Buffer) {
+func EncodeMetadata(m map[string]string, bb *bytes.Buffer) {
 	if len(m) == 0 {
 		return
 	}
@@ -193,7 +193,7 @@ func encodeMetadata(m map[string]string, bb *bytes.Buffer) {
 	}
 }
 
-func decodeMetadata(l uint32, data []byte) (map[string]string, error) {
+func DecodeMetadata(l uint32, data []byte) (map[string]string, error) {
 	m := make(map[string]string, 10)
 	n := uint32(0)
 	for n < l {
