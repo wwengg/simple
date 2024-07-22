@@ -10,6 +10,8 @@ type Gateway struct {
 	PublicRouterPrefix  string `mapstructure:"public-router-prefix" yaml:"public-router-prefix" json:"publicRouterPrefix"`
 	Addr                int    `mapstructure:"addr" json:"addr" yaml:"addr"` // 端口值
 
-	LimitCountIP int `mapstructure:"iplimit-count" json:"iplimit-count" yaml:"iplimit-count"`
-	LimitTimeIP  int `mapstructure:"iplimit-time" json:"iplimit-time" yaml:"iplimit-time"`
+	LimitCountIP int    `mapstructure:"iplimit-count" json:"iplimit-count" yaml:"iplimit-count"`
+	LimitTimeIP  int    `mapstructure:"iplimit-time" json:"iplimit-time" yaml:"iplimit-time"`
+	CertPath     string `mapstructure:"cert-path" json:"certPath" yaml:"cert-path"`
+	KeyPath      string `mapstructure:"key-path" json:"keyPath" yaml:"key-path"`
 }
