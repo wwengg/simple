@@ -261,10 +261,10 @@ func (bc *Connection) GetConnIdStr() string {
 func (bc *Connection) GetTaskHandler() STaskHandler {
 	return bc.TaskHandler
 }
-func (bc *Connection) RemoteAddr() net.Addr     { return nil }
-func (bc *Connection) LocalAddr() net.Addr      { return nil }
-func (bc *Connection) LocalAddrString() string  { return "" }
-func (bc *Connection) RemoteAddrString() string { return "" }
+func (bc *Connection) RemoteAddr() net.Addr     { return bc.Conn.RemoteAddr() }
+func (bc *Connection) LocalAddr() net.Addr      { return bc.Conn.LocalAddr() }
+func (bc *Connection) LocalAddrString() string  { return bc.Conn.LocalAddr().String() }
+func (bc *Connection) RemoteAddrString() string { return bc.Conn.RemoteAddr().String() }
 func (bc *Connection) SendData(data []byte) error {
 	bc.msgLock.RLock()
 	defer bc.msgLock.RUnlock()

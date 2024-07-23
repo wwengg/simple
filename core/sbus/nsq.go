@@ -7,6 +7,7 @@ import (
 	"github.com/nsqio/go-nsq"
 	"github.com/wwengg/simple/core/sconfig"
 	"github.com/wwengg/simple/core/slog"
+	"go.uber.org/zap"
 	"runtime"
 	"strconv"
 	"sync"
@@ -150,9 +151,9 @@ type Nsq struct {
 	//BaseConnection
 	// The message management module that manages MsgID and the corresponding processing method
 	// (消息管理MsgID和对应处理方法的消息管理模块)
-	taskHandler STaskHandler
-	producers   []*NsqProducer
-	Consumers   []*NsqConsumer
+	//taskHandler STaskHandler
+	producers []*NsqProducer
+	Consumers []*NsqConsumer
 
 	// Buffered channel used for message communication between the read and write goroutines
 	// (有缓冲管道，用于读、写两个goroutine之间的消息通信)
@@ -173,15 +174,18 @@ type Nsq struct {
 	maxInFlight     int
 	startWriterFlag int32
 	dataPack        SDataPack
+
+	Apis map[int32]SRouter
 }
 
 func NewNsqByConf(nsq2 sconfig.Nsq, dataPack SDataPack) (*Nsq, error) {
-	taskHandler := NewTaskHandler(nsq2.WorkerPoolSize, nsq2.MaxTaskChanLen)
+	//taskHandler := NewTaskHandler(nsq2.WorkerPoolSize, nsq2.MaxTaskChanLen)
 	n := &Nsq{
 		//BaseConnection: BaseConnection{
 		//	TaskHandler: taskHandler,
 		//},
-		taskHandler:       taskHandler,
+		Apis: make(map[int32]SRouter),
+		//taskHandler:       taskHandler,
 		startWriterFlag:   0,
 		producers:         make([]*NsqProducer, 0),
 		Consumers:         make([]*NsqConsumer, 0),
@@ -205,12 +209,12 @@ func NewNsqByConf(nsq2 sconfig.Nsq, dataPack SDataPack) (*Nsq, error) {
 }
 
 func NewNsq(workPoolSize, maxTaskQueueLen, maxNsqDataChanLen uint32, channel, nsqLookupAddr string, concurrency, maxInFlight int, nsqdList []string) *Nsq {
-	taskHandler := NewTaskHandler(workPoolSize, maxTaskQueueLen)
+	//taskHandler := NewTaskHandler(workPoolSize, maxTaskQueueLen)
 	n := &Nsq{
 		//BaseConnection: BaseConnection{
 		//	TaskHandler: taskHandler,
 		//},
-		taskHandler:       taskHandler,
+		//taskHandler:       taskHandler,
 		startWriterFlag:   0,
 		producers:         make([]*NsqProducer, 0),
 		Consumers:         make([]*NsqConsumer, 0),
@@ -236,8 +240,22 @@ func (n *Nsq) setStartWriterFlag() bool {
 	return atomic.CompareAndSwapInt32(&n.startWriterFlag, 0, 1)
 }
 
+func (n *Nsq) addRouter(msgID int32, router SRouter) {
+	// 1. Check whether the current API processing method bound to the msgID already exists
+	// (判断当前msg绑定的API处理方法是否已经存在)
+	if _, ok := n.Apis[msgID]; ok {
+		msgErr := fmt.Sprintf("repeated api , msgID = %+v\n", msgID)
+		panic(msgErr)
+	}
+	// 2. Add the binding relationship between msg and API
+	// (添加msg与api的绑定关系)
+	n.Apis[msgID] = router
+	slog.Ins().Infof("Add Router msgID = %d", msgID)
+}
+
 func (n *Nsq) AddRouter(topic string, msgID int32, router SRouter) {
-	n.taskHandler.AddRouter(msgID, router)
+	//n.taskHandler.AddRouter(msgID, router)
+	n.addRouter(msgID, router)
 	if v, ok := TopicEnum_value[topic]; ok {
 		slog.Ins().Infof("already created Consumer,Topic=%s msgId=%d,repeatedMsgId=%d", topic, msgID, v)
 	} else {
@@ -303,10 +321,33 @@ func (n *Nsq) HandleMessage(message *nsq.Message) error {
 		dataPack = NsqDataPackObj
 	}
 	if msg, err := dataPack.Unpack(message.Body); err != nil {
-		return err
+		slog.Ins().Error("Nsq Consumer Unpack Data err", zap.Error(err))
+		return nil
 	} else {
 		task := GetTask(nil, msg)
-		n.taskHandler.SendTaskToTaskQueue(task)
+		defer PutTask(task)
+		task.GetMessage().SetNsqMessage(message)
+
+		msgId := task.GetMsgID()
+		handler, ok := n.Apis[msgId]
+		//n.taskHandler.SendTaskToTaskQueue(task)
+		if !ok {
+			slog.Ins().Errorf("api msgID = %d is not FOUND!", task.GetMsgID())
+			// 返回报错，让其他版本的服务接收数据再试试
+			return fmt.Errorf("api msgID = %d is not FOUND!", task.GetMsgID())
+		}
+
+		// Bind the Task request to the corresponding Router relationship
+		// (Request请求绑定Router对应关系)
+		task.BindRouter(handler)
+
+		// Execute the corresponding processing method
+		err = task.Call()
+		if err != nil {
+			slog.Ins().Error("task.Call error", zap.Error(err), zap.Int32("msgId", msgId))
+			// 返回报错，让其他版本的服务接收数据再试试
+			return err
+		}
 	}
 
 	return nil
@@ -352,7 +393,7 @@ func (n *Nsq) Start() {
 	}()
 	n.ctx, n.cancel = context.WithCancel(context.Background())
 	// 开启taskWorkPool
-	n.taskHandler.StartWorkerPool()
+	//n.taskHandler.StartWorkerPool()
 	// 启动nsq consumer
 	for i, consumer := range n.Consumers {
 		err := consumer.StartReader(n)
@@ -370,7 +411,7 @@ func (n *Nsq) Start() {
 			consumer.Stop()
 		}
 		// 让taskHandler停止
-		n.taskHandler.Stop()
+		//n.taskHandler.Stop()
 		return
 	}
 }

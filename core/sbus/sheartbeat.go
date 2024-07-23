@@ -34,5 +34,5 @@ type HeartBeatOption struct {
 }
 
 const (
-	HeartBeatDefaultMsgID uint32 = 99999
+	HeartBeatDefaultMsgID uint16 = 1
 )

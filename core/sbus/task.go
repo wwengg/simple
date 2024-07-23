@@ -99,10 +99,10 @@ func (r *Task) next() {
 	r.stepLock.Unlock()
 }
 
-func (r *Task) Call() {
+func (r *Task) Call() error {
 
 	if r.router == nil {
-		return
+		return nil
 	}
 
 	for r.steps < HANDLE_OVER {
@@ -110,7 +110,10 @@ func (r *Task) Call() {
 		case PRE_HANDLE:
 			r.router.PreHandle(r)
 		case HANDLE:
-			r.router.Handle(r)
+			err := r.router.Handle(r)
+			if err != nil {
+				return err
+			}
 		case POST_HANDLE:
 			r.router.PostHandle(r)
 		}
@@ -119,4 +122,5 @@ func (r *Task) Call() {
 	}
 
 	r.steps = PRE_HANDLE
+	return nil
 }

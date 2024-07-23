@@ -1,6 +1,7 @@
 package sbus
 
 import (
+	"github.com/nsqio/go-nsq"
 	"github.com/wwengg/simple/core/smsg"
 )
 
@@ -15,6 +16,9 @@ type SMsg interface {
 	GetSeq() uint64
 	GetMeta() map[string]string
 	GetData() []byte // Gets the content of the message(获取消息内容)
+	//
+	SetNsqMessage(message *nsq.Message)
+	GetNsqMessage() *nsq.Message
 }
 
 type NSQMsg struct {
@@ -29,6 +33,7 @@ type NSQMsg struct {
 	Seq           uint64
 	Metadata      map[string]string
 	Data          []byte
+	nsqMessage    *nsq.Message
 }
 
 func NewNSQMsg(Cmd uint16, ret uint16, sType smsg.SerializeType, md map[string]string, data []byte) *NSQMsg {
@@ -76,4 +81,12 @@ func (m *NSQMsg) GetMeta() map[string]string {
 
 func (m *NSQMsg) GetData() []byte {
 	return m.Data
+}
+
+func (m *NSQMsg) SetNsqMessage(message *nsq.Message) {
+	m.nsqMessage = message
+}
+
+func (m *NSQMsg) GetNsqMessage() *nsq.Message {
+	return m.nsqMessage
 }

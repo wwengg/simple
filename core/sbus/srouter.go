@@ -1,9 +1,9 @@
 package sbus
 
 type SRouter interface {
-	PreHandle(task STask)  //Hook method before processing conn business(在处理conn业务之前的钩子方法)
-	Handle(task STask)     //Method for processing conn business(处理conn业务的方法)
-	PostHandle(task STask) //Hook method after processing conn business(处理conn业务之后的钩子方法)
+	PreHandle(task STask)    //Hook method before processing conn business(在处理conn业务之前的钩子方法)
+	Handle(task STask) error //Method for processing conn business(处理conn业务的方法)
+	PostHandle(task STask)   //Hook method after processing conn business(处理conn业务之后的钩子方法)
 }
 
 type BaseRouter struct{}
@@ -16,10 +16,14 @@ type BaseRouter struct{}
 // 所以Router全部继承BaseRouter的好处是，不需要实现PreHandle和PostHandle也可以实例化)
 
 // PreHandle -
-func (br *BaseRouter) PreHandle(task STask) {}
+func (br *BaseRouter) PreHandle(task STask) {
+}
 
 // Handle -
-func (br *BaseRouter) Handle(task STask) {}
+func (br *BaseRouter) Handle(task STask) error {
+	return nil
+}
 
 // PostHandle -
-func (br *BaseRouter) PostHandle(task STask) {}
+func (br *BaseRouter) PostHandle(task STask) {
+}
