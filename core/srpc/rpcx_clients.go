@@ -7,6 +7,7 @@ package srpc
 import (
 	"context"
 	"fmt"
+	"github.com/wwengg/simple/core/utils"
 	"sync"
 	"sync/atomic"
 
@@ -51,6 +52,8 @@ type RPCXClients struct {
 	seq uint64
 }
 
+var Brotli protocol.CompressType = 2
+
 func TODO() {
 	return
 }
@@ -73,6 +76,7 @@ func NewSRPCClients(config *sconfig.RPC, opts ...OptionSRPCClients) *RPCXClients
 	for _, opt := range opts {
 		opt(rpcxClients)
 	}
+	protocol.Compressors[Brotli] = &utils.BrotliCompressor{}
 
 	return rpcxClients
 

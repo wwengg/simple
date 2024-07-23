@@ -1,5 +1,10 @@
 package smsg
 
+import (
+	"github.com/smallnest/rpcx/protocol"
+	"github.com/wwengg/simple/core/utils"
+)
+
 type SerializeType byte
 
 const (
@@ -31,3 +36,9 @@ const (
 	// Response is message type of response
 	Response
 )
+
+var Compressors = map[CompressType]protocol.Compressor{
+	None:   &protocol.RawDataCompressor{},
+	Gzip:   &protocol.GzipCompressor{},
+	Brotli: &utils.BrotliCompressor{},
+}

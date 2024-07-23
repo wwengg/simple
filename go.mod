@@ -6,9 +6,9 @@ toolchain go1.21.4
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
-	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gogo/protobuf v1.3.2
+	github.com/google/brotli/go/cbrotli v0.0.0-20240715182736-39bcecf4559f
 	github.com/gorilla/websocket v1.5.3
 	github.com/nsqio/go-nsq v1.1.0
 	github.com/opentracing/opentracing-go v1.2.0
