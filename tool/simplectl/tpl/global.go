@@ -28,6 +28,7 @@ var (
 func InitSlog() {
 	// 初始化日志
 	LOG = slog.NewZapLog(&CONFIG.Slog)
+    slog.SetSlog(LOG)
 }
 
 func InitSRPC() {

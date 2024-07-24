@@ -66,7 +66,7 @@ func (dp *NsqDataPack) Pack(msg SMsg) ([]byte, error) {
 	// SerializeType
 	oneByte[0] = (oneByte[0] &^ 0xF0) | (byte(msg.GetSerializeType()) << 4)
 	// CompressType
-	oneByte[0] = (oneByte[0] &^ 0x1C) | ((byte(msg.GetCompressType()) << 2) & 0x1C)
+	oneByte[0] = (oneByte[0] &^ 0x0C) | ((byte(msg.GetCompressType()) << 2) & 0x0C)
 	// messageType
 	oneByte[0] = (oneByte[0] &^ 0x03) | (byte(msg.GetMessageType()) & 0x03)
 	// Write the oneByte
@@ -137,7 +137,7 @@ func (dp *NsqDataPack) Unpack(binaryData []byte) (SMsg, error) {
 	// Read the SerializeType
 	msg.SerializeType = smsg.SerializeType((onebyte[0] & 0xF0) >> 4)
 	// Read the CompressType
-	msg.CompressType = smsg.CompressType((onebyte[0] & 0x1C) >> 2)
+	msg.CompressType = smsg.CompressType((onebyte[0] & 0x0C) >> 2)
 	// Read the MessageType
 	msg.MessageType = smsg.MessageType(onebyte[0] & 0x03)
 	// Read the seq
