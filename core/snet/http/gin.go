@@ -5,25 +5,26 @@
 package http
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"github.com/wwengg/simple/core/sconfig"
 	"github.com/wwengg/simple/core/slog"
+	"net"
 	"net/http"
 )
 
 type GinEngine struct {
-	engine *gin.Engine
-	config *sconfig.Gateway
-	ln     *quic.EarlyListener
+	engine  *gin.Engine
+	config  *sconfig.Gateway
+	ln      *quic.EarlyListener
+	connTcp net.Listener
 
 	PublicRouterGroup  *gin.RouterGroup
 	PrivateRouterGroup *gin.RouterGroup
 }
 
-func NewGinEngine(config *sconfig.Gateway, ln *quic.EarlyListener) *GinEngine {
+func NewGinEngine(config *sconfig.Gateway, ln *quic.EarlyListener, connTcp net.Listener) *GinEngine {
 	engine := gin.New()
 	engine.UseH2C = true
 
@@ -45,6 +46,7 @@ func NewGinEngine(config *sconfig.Gateway, ln *quic.EarlyListener) *GinEngine {
 		config:             config,
 		engine:             engine,
 		ln:                 ln,
+		connTcp:            connTcp,
 		PublicRouterGroup:  engine.Group(config.PublicRouterPrefix),
 		PrivateRouterGroup: engine.Group(config.PrivateRouterPrefix),
 	}
@@ -58,10 +60,10 @@ func (g *GinEngine) Serve() {
 	hErr := make(chan error, 1)
 	qErr := make(chan error, 1)
 	go func() {
-		hErr <- http.ListenAndServeTLS(fmt.Sprintf(":%d", g.config.Addr), g.config.CertPath, g.config.KeyPath, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hErr <- http.ServeTLS(g.connTcp, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			s.SetQUICHeaders(w.Header())
 			g.engine.ServeHTTP(w, r)
-		}))
+		}), g.config.CertPath, g.config.KeyPath)
 	}()
 	go func() {
 		qErr <- s.ServeListener(g.ln)
