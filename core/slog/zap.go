@@ -126,3 +126,11 @@ func SetLog(slog Slog) {
 func Ins() Slog {
 	return sLogInstance
 }
+
+func (z *Zap) GetSugaredLogger() *zap.SugaredLogger {
+	return z.sugar
+}
+
+func (z *Zap) GetLogger() *zap.Logger {
+	return z.logger
+}
