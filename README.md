@@ -44,13 +44,13 @@ protoc --proto_path=proto --go_out=proto --go_opt=paths=source_relative --simple
 - [x] tcp(example [im](https://github.com/wwengg/im))
 - [x] kcp(example [im](https://github.com/wwengg/im))
 - [x] websocket(example [im](https://github.com/wwengg/im))
-- [ ] quic
+- [x] quic
 - [x] 智能路由 (example [im](https://github.com/wwengg/im))
 - [ ] simplectl 快速生成gateway代码
 - [ ] 限流
 - [ ] 自动熔断
-- [ ] 链路追踪
-- [ ] 鉴权
+- [x] 链路追踪
+- [x] 鉴权
 - [ ] 验签加解密
 - [x] 超时控制
 - [ ] 监控报警
