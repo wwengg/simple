@@ -129,7 +129,7 @@ type Connection struct {
 	IOReadBuffSize uint32
 }
 
-func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack, connManager SConnManager) SConnection {
+func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack, connManager SConnManager, IOReadBuffSize uint32) SConnection {
 	return &Connection{
 		Conn:           conn,
 		ConnID:         connId,
@@ -140,7 +140,7 @@ func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnCon
 		FrameDecoder:   frameDecoder,
 		Datapack:       datapack,
 		Property:       nil,
-		IOReadBuffSize: 0,
+		IOReadBuffSize: IOReadBuffSize,
 		connManager:    connManager,
 	}
 }
