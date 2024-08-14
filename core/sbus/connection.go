@@ -105,6 +105,9 @@ type Connection struct {
 	// (告知该链接已经退出/停止的channel)
 	ctx    context.Context
 	cancel context.CancelFunc
+	// Which Connection Manager the current connection belongs to
+	// (当前链接是属于哪个Connection Manager的)
+	connManager SConnManager
 
 	// frameDecoder is the decoder for splitting or splicing data packets.
 	// (断粘包解码器)
@@ -125,7 +128,7 @@ type Connection struct {
 	IOReadBuffSize uint32
 }
 
-func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack) SConnection {
+func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack, connManager SConnManager) SConnection {
 	return &Connection{
 		Conn:           conn,
 		ConnID:         connId,
@@ -137,6 +140,7 @@ func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnCon
 		Datapack:       datapack,
 		Property:       nil,
 		IOReadBuffSize: 0,
+		connManager:    connManager,
 	}
 }
 
@@ -243,6 +247,12 @@ func (bc *Connection) Start() {
 		// If the user has registered a close callback for the connection, it should be called explicitly at this moment.
 		// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
 		bc.callOnConnStop()
+		
+		_ = bc.Conn.Close()
+		if bc.connManager != nil {
+			bc.connManager.Remove(bc)
+		}
+		slog.Ins().Infof("Conn Stop()...ConnID = %d", bc.ConnID)
 		return
 	}
 }
