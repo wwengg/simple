@@ -2,7 +2,6 @@ package sbus
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"github.com/wwengg/simple/core/slog"
 	"sync"
@@ -63,7 +62,7 @@ func (mh *TaskHandler) AddRouter(msgID int32, router SRouter) {
 func (mh *TaskHandler) SendTaskToTaskQueue(task STask) {
 
 	mh.TaskQueue <- task
-	slog.Ins().Debugf("SendMsgToTaskQueue-->%s", hex.EncodeToString(task.GetData()))
+	//slog.Ins().Debugf("SendMsgToTaskQueue-->%s", hex.EncodeToString(task.GetData()))
 }
 
 // doFuncHandler handles functional requests (执行函数式请求)
