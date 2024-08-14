@@ -197,7 +197,9 @@ func (bc *Connection) StartReader() {
 				if bc.FrameDecoder != nil {
 					// Decode the 0-n bytes of data read
 					// (为读取到的0-n个字节的数据进行解码)
+					slog.Ins().Debug("Decode")
 					bufArrays, err2 := bc.FrameDecoder.Decode(buffer[0:n])
+					slog.Ins().Debug("Decode", zap.Any("bufArrays", bufArrays), zap.Error(err2))
 					if bufArrays == nil {
 						continue
 					}
