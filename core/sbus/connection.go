@@ -247,6 +247,7 @@ func (bc *Connection) Start() {
 
 	select {
 	case <-bc.ctx.Done():
+		slog.Ins().Debugf("Conn Stop() Enter...ConnID = %d", bc.ConnID)
 		// If the user has registered a close callback for the connection, it should be called explicitly at this moment.
 		// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
 		bc.callOnConnStop()
@@ -255,7 +256,7 @@ func (bc *Connection) Start() {
 		if bc.connManager != nil {
 			bc.connManager.Remove(bc)
 		}
-		slog.Ins().Infof("Conn Stop()...ConnID = %d", bc.ConnID)
+		slog.Ins().Debugf("Conn Stop() End...ConnID = %d", bc.ConnID)
 		return
 	}
 }
