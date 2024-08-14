@@ -209,8 +209,9 @@ func (bc *Connection) StartReader() {
 						}
 						// Get the current client's Request data
 						// (得到当前客户端请求的Request数据)
+						slog.Ins().Debug("GetTaskStart")
 						task := GetTask(bc, msg)
-						slog.Ins().Info("GetTask", zap.Any("task", task))
+						slog.Ins().Debug("GetTaskSuccess", zap.Any("task", task))
 						bc.TaskHandler.SendTaskToTaskQueue(task)
 					}
 					if err2 != nil {
