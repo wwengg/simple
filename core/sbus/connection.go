@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/wwengg/simple/core/slog"
+	"go.uber.org/zap"
 	"net"
 	"sync"
 )
@@ -209,6 +210,7 @@ func (bc *Connection) StartReader() {
 						// Get the current client's Request data
 						// (得到当前客户端请求的Request数据)
 						task := GetTask(bc, msg)
+						slog.Ins().Info("GetTask", zap.Any("task", task))
 						bc.TaskHandler.SendTaskToTaskQueue(task)
 					}
 					if err2 != nil {
@@ -247,7 +249,7 @@ func (bc *Connection) Start() {
 		// If the user has registered a close callback for the connection, it should be called explicitly at this moment.
 		// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
 		bc.callOnConnStop()
-		
+
 		_ = bc.Conn.Close()
 		if bc.connManager != nil {
 			bc.connManager.Remove(bc)

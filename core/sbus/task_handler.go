@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/wwengg/simple/core/slog"
+	"go.uber.org/zap"
 	"sync"
 )
 
@@ -80,6 +81,9 @@ func (mh *TaskHandler) doFuncHandler(task SFuncTask, workerID int) {
 // doMsgHandler immediately handles messages in a non-blocking manner
 // (立即以非阻塞方式处理消息)
 func (mh *TaskHandler) doMsgHandler(task STask, workerID int) {
+	// 执行完成后回收 Request 对象回对象池
+	defer slog.Ins().Info("PutTask", zap.Any("task", task))
+	defer PutTask(task)
 	defer func() {
 		if err := recover(); err != nil {
 			slog.Ins().Errorf("workerID: %d doMsgHandler panic: %v", workerID, err)
@@ -101,8 +105,6 @@ func (mh *TaskHandler) doMsgHandler(task STask, workerID int) {
 	// Execute the corresponding processing method
 	task.Call()
 
-	// 执行完成后回收 Request 对象回对象池
-	PutTask(task)
 }
 
 // StartOneWorker starts a worker workflow
