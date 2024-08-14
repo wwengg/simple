@@ -3,20 +3,20 @@ package sbus
 type SHeartbeatChecker interface {
 	SetOnRemoteNotAlive(OnRemoteNotAlive)
 	SetHeartbeatMsgFunc(HeartBeatMsgFunc)
-	SetHeartbeatFunc(HeartBeatFunc)
-	BindRouter(uint32, SRouter)
+	//SetHeartbeatFunc(HeartBeatFunc)
+	//BindRouter(uint32, SRouter)
 	Start()
 	Stop()
 	SendHeartBeatMsg() error
 	BindConn(connection SConnection)
-	Clone() SHeartbeatChecker
-	MsgID() uint32
-	Router() SRouter
+	//Clone() SHeartbeatChecker
+	//MsgID() uint32
+	//Router() SRouter
 }
 
 // User-defined method for handling heartbeat detection messages
 // (用户自定义的心跳检测消息处理方法)
-type HeartBeatMsgFunc func(connection SConnection) []byte
+type HeartBeatMsgFunc func(connection SConnection) SMsg
 
 // HeartBeatFunc User-defined heartbeat function
 // (用户自定义心跳函数)

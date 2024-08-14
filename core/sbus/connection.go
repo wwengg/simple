@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/wwengg/simple/core/slog"
-	"go.uber.org/zap"
 	"net"
 	"sync"
+	"time"
 )
 
 type MsgData struct {
@@ -127,22 +127,36 @@ type Connection struct {
 	propertyLock sync.Mutex
 
 	IOReadBuffSize uint32
+
+	// Last activity time
+	// (最后一次活动时间)
+	lastActivityTime time.Time
+
+	hc SHeartbeatChecker
+
+	heartBeatDuration time.Duration
 }
 
-func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack, connManager SConnManager, IOReadBuffSize uint32) SConnection {
+func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack, connManager SConnManager, IOReadBuffSize uint32, heartbeatDuration time.Duration) SConnection {
 	return &Connection{
-		Conn:           conn,
-		ConnID:         connId,
-		ConnIdStr:      fmt.Sprintf("%d", connId),
-		TaskHandler:    taskHandler,
-		OnConnStart:    OnConnStart,
-		OnConnStop:     OnConnStop,
-		FrameDecoder:   frameDecoder,
-		Datapack:       datapack,
-		Property:       nil,
-		IOReadBuffSize: IOReadBuffSize,
-		connManager:    connManager,
+		Conn:              conn,
+		ConnID:            connId,
+		ConnIdStr:         fmt.Sprintf("%d", connId),
+		TaskHandler:       taskHandler,
+		OnConnStart:       OnConnStart,
+		OnConnStop:        OnConnStop,
+		FrameDecoder:      frameDecoder,
+		Datapack:          datapack,
+		Property:          nil,
+		IOReadBuffSize:    IOReadBuffSize,
+		connManager:       connManager,
+		heartBeatDuration: heartbeatDuration,
 	}
+}
+
+// 更新心跳检测时间
+func (c *Connection) updateActivity() {
+	c.lastActivityTime = time.Now()
 }
 
 func (bc *Connection) callOnConnStart() {
@@ -189,17 +203,15 @@ func (bc *Connection) StartReader() {
 				if n == 0 {
 					continue
 				}
-				//if n > 0 && c.hc != nil {
-				//	c.updateActivity()
-				//}
+				if n > 0 && bc.hc != nil {
+					bc.updateActivity()
+				}
 				// Deal with the custom protocol fragmentation problem, added by uuxia 2023-03-21
 				// (处理自定义协议断粘包问题)
 				if bc.FrameDecoder != nil {
 					// Decode the 0-n bytes of data read
 					// (为读取到的0-n个字节的数据进行解码)
-					slog.Ins().Debug("Decode")
 					bufArrays, err2 := bc.FrameDecoder.Decode(buffer[0:n])
-					slog.Ins().Debug("Decode", zap.Any("bufArrays", bufArrays), zap.Error(err2))
 					if bufArrays == nil {
 						continue
 					}
@@ -211,14 +223,12 @@ func (bc *Connection) StartReader() {
 						}
 						// Get the current client's Request data
 						// (得到当前客户端请求的Request数据)
-						slog.Ins().Debug("GetTaskStart")
 						task := GetTask(bc, msg)
-						slog.Ins().Debug("GetTaskSuccess", zap.Any("task", task))
 						bc.TaskHandler.SendTaskToTaskQueue(task)
 					}
 					if err2 != nil {
 						slog.Ins().Error(err2.Error())
-						return // 发送过长数据包或协议错误，断开连接
+						continue // 发送过长数据包或协议错误
 					}
 				} else {
 					msg, err := bc.Datapack.Unpack(buffer[0:n])
@@ -242,6 +252,11 @@ func (bc *Connection) Start() {
 	bc.ctx, bc.cancel = context.WithCancel(context.Background())
 
 	bc.callOnConnStart()
+	// Start heartbeating detection
+	if bc.hc != nil {
+		bc.hc.Start()
+		bc.updateActivity()
+	}
 
 	// Start the Goroutine for reading data from the client
 	// (开启用户从客户端读取数据流程的Goroutine)
@@ -249,16 +264,19 @@ func (bc *Connection) Start() {
 
 	select {
 	case <-bc.ctx.Done():
-		slog.Ins().Debugf("Conn Stop() Enter...ConnID = %d", bc.ConnID)
 		// If the user has registered a close callback for the connection, it should be called explicitly at this moment.
 		// (如果用户注册了该链接的	关闭回调业务，那么在此刻应该显示调用)
 		bc.callOnConnStop()
+
+		if bc.hc != nil {
+			bc.hc.Stop()
+		}
 
 		_ = bc.Conn.Close()
 		if bc.connManager != nil {
 			bc.connManager.Remove(bc)
 		}
-		slog.Ins().Debugf("Conn Stop() End...ConnID = %d", bc.ConnID)
+		slog.Ins().Debugf("Conn Stop() ...ConnID = %d", bc.ConnID)
 		return
 	}
 }
@@ -331,8 +349,18 @@ func (bc *Connection) RemoveProperty(key string) {
 
 	delete(bc.Property, key)
 }
-func (bc *Connection) IsAlive() bool                          { return true }
-func (bc *Connection) SetHeartBeat(checker SHeartbeatChecker) {}
+func (bc *Connection) IsAlive() bool {
+	if bc.isClosed() {
+		return false
+	}
+	// Check the last activity time of the connection. If it's beyond the heartbeat interval,
+	// then the connection is considered dead.
+	// (检查连接最后一次活动时间，如果超过心跳间隔，则认为连接已经死亡)
+	return time.Now().Sub(bc.lastActivityTime) < bc.heartBeatDuration
+}
+func (bc *Connection) SetHeartBeat(checker SHeartbeatChecker) {
+	bc.hc = checker
+}
 
 // func (bc *BaseConnection) AddCloseCallback(handler, key interface{}, callback func()) {}
 // func (bc *BaseConnection) RemoveCloseCallback(handler, key interface{})               {}
