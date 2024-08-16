@@ -169,7 +169,7 @@ func (dp *NsqDataPack) Unpack(binaryData []byte) (SMsg, error) {
 	if dataLen > 0 {
 		// Read the metaData
 		// 包大小可能大于65535 所以全都返回吧
-		msg.Data = binaryData[21+metaLen:]
+		msg.Data = binaryData[22+metaLen:]
 	}
 
 	// Only the header data needs to be unpacked, and then another data read is performed from the connection based on the header length
