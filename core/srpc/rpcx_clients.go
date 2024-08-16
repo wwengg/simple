@@ -6,10 +6,12 @@ package srpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/wwengg/simple/core/utils"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/smallnest/rpcx/client"
 	"github.com/smallnest/rpcx/protocol"
@@ -69,8 +71,14 @@ func NewSRPCClients(config *sconfig.RPC, opts ...OptionSRPCClients) *RPCXClients
 		serviceDiscovery: register,
 		FailMode:         client.Failover,
 		SelectMode:       client.RoundRobin,
-		Option:           client.Option{},
-		xclients:         make(map[string]client.XClient, 0),
+		Option: client.Option{
+			Retries:        3,
+			ConnectTimeout: 10 * time.Second,
+			SerializeType:  protocol.ProtoBuffer,
+			CompressType:   protocol.Gzip,
+			BackupLatency:  10 * time.Millisecond,
+		},
+		xclients: make(map[string]client.XClient),
 	}
 
 	for _, opt := range opts {
@@ -124,6 +132,23 @@ func (s *RPCXClients) RPC(ctx context.Context, servicePath string, serviceMethod
 	}
 
 	return xc.SendRaw(ctx, req)
+}
+
+func (s *RPCXClients) RPC2(ctx context.Context, servicePath string, serviceMethod string, args interface{}, reply interface{}) (err error) {
+	if s.Option.SerializeType == protocol.ProtoBuffer {
+		xc, err := s.GetXClient(servicePath)
+		if err != nil {
+			return err
+		}
+		err = xc.Call(ctx, serviceMethod, args, reply)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("XClient not support serialize type")
+	}
+
+	return nil
 }
 
 func (s *RPCXClients) RPCProtobuf(ctx context.Context, servicePath string, serviceMethod string, payload []byte) (meta map[string]string, resp []byte, err error) {
