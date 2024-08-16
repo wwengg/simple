@@ -364,7 +364,7 @@ func (n *Nsq) StartWriter(p *NsqProducer) {
 				if err := p.PublishDirect(nsqData.Topic, nsqData.data); err != nil {
 					slog.Ins().Errorf("Send Buff Data error:, %s NsqProducer Publish error", err)
 					// 失败的消息丢回管道 重新发
-					if err = n.SendToMsgBuffChan(nsqData.Topic, nsqData.data); err == nil {
+					if err = n.SendToMsgBuffChan(nsqData.Topic, nsqData.data); err != nil {
 						slog.Ins().Errorf("SendToMsgBuffChan error:%s,", err.Error())
 					}
 					PutNsqData(nsqData)
