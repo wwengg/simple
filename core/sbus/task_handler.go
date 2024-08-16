@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/wwengg/simple/core/slog"
+	"runtime"
 	"sync"
 )
 
@@ -83,7 +84,9 @@ func (mh *TaskHandler) doMsgHandler(task STask, workerID int) {
 	defer PutTask(task)
 	defer func() {
 		if err := recover(); err != nil {
-			slog.Ins().Errorf("workerID: %d doMsgHandler panic: %v", workerID, err)
+			var errStack = make([]byte, 1024)
+			n := runtime.Stack(errStack, true)
+			slog.Ins().Errorf("panic in message decode: %v, stack: %s", err, errStack[:n])
 		}
 	}()
 

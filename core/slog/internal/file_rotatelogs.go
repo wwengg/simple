@@ -17,7 +17,7 @@ type fileRotatelogs struct{}
 // GetWriteSyncer 获取 zapcore.WriteSyncer
 
 func (r *fileRotatelogs) GetWriteSyncer(level string, config *sconfig.Slog) zapcore.WriteSyncer {
-	fileWriter := NewCutter(config.Director, level, WithCutterFormat("2006-01-02"))
+	fileWriter := NewCutter(config.Director, level, config.IsAllInOne, WithCutterFormat("2006-01-02"))
 	if config.LogInConsole {
 		return zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(fileWriter))
 	}

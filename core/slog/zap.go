@@ -27,6 +27,7 @@ var sLogInstance Slog = NewZapLog(&sconfig.Slog{
 	MaxAge:        30,
 	ShowLine:      true,
 	LogInConsole:  true,
+	IsAllInOne:    true,
 })
 
 type Zap struct {

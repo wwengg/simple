@@ -14,11 +14,12 @@ import (
 )
 
 type Cutter struct {
-	level    string        // 日志级别(debug, info, warn, error, dpanic, panic, fatal)
-	format   string        // 时间格式(2006-01-02)
-	Director string        // 日志文件夹
-	file     *os.File      // 文件句柄
-	mutex    *sync.RWMutex // 读写锁
+	level      string        // 日志级别(debug, info, warn, error, dpanic, panic, fatal)
+	format     string        // 时间格式(2006-01-02)
+	Director   string        // 日志文件夹
+	file       *os.File      // 文件句柄
+	mutex      *sync.RWMutex // 读写锁
+	isAllInOne bool
 }
 
 type CutterOption func(*Cutter)
@@ -30,11 +31,12 @@ func WithCutterFormat(format string) CutterOption {
 	}
 }
 
-func NewCutter(director string, level string, options ...CutterOption) *Cutter {
+func NewCutter(director string, level string, isAllInOne bool, options ...CutterOption) *Cutter {
 	rotate := &Cutter{
-		level:    level,
-		Director: director,
-		mutex:    new(sync.RWMutex),
+		level:      level,
+		Director:   director,
+		mutex:      new(sync.RWMutex),
+		isAllInOne: isAllInOne,
 	}
 	for i := 0; i < len(options); i++ {
 		options[i](rotate)
@@ -86,7 +88,11 @@ func (c *Cutter) Write(bytes []byte) (n int, err error) {
 	if business != "" {
 		formats = append(formats, business)
 	}
-	formats = append(formats, c.level+".log")
+	if c.isAllInOne {
+		formats = append(formats, "all.log")
+	} else {
+		formats = append(formats, c.level+".log")
+	}
 	filename := filepath.Join(formats...)
 	dirname := filepath.Dir(filename)
 	err = os.MkdirAll(dirname, 0755)
