@@ -8,7 +8,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/wwengg/simple/core/slog"
 	"github.com/wwengg/simple/core/utils"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -135,6 +137,14 @@ func (s *RPCXClients) RPC(ctx context.Context, servicePath string, serviceMethod
 }
 
 func (s *RPCXClients) RPC2(ctx context.Context, servicePath string, serviceMethod string, args interface{}, reply interface{}) (err error) {
+	// 传错args reply会panic
+	defer func() {
+		if err := recover(); err != nil {
+			var errStack = make([]byte, 1024)
+			n := runtime.Stack(errStack, true)
+			slog.Ins().Errorf("panic in RPC2: %v, stack: %s", err, errStack[:n])
+		}
+	}()
 	if s.Option.SerializeType == protocol.ProtoBuffer {
 		xc, err := s.GetXClient(servicePath)
 		if err != nil {
