@@ -33,9 +33,9 @@ func zapEncodeLevel(config *sconfig.Slog) zapcore.LevelEncoder {
 
 // TransportLevel 根据字符串转化为 zapcore.Level
 
-func transportLevel(config *sconfig.Slog) zapcore.Level {
-	config.Level = strings.ToLower(config.Level)
-	switch config.Level {
+func transportLevel(level string) zapcore.Level {
+	level = strings.ToLower(level)
+	switch level {
 	case "debug":
 		return zapcore.DebugLevel
 	case "info":
@@ -43,7 +43,7 @@ func transportLevel(config *sconfig.Slog) zapcore.Level {
 	case "warn":
 		return zapcore.WarnLevel
 	case "error":
-		return zapcore.WarnLevel
+		return zapcore.ErrorLevel
 	case "dpanic":
 		return zapcore.DPanicLevel
 	case "panic":
@@ -83,7 +83,7 @@ func getEncoderConfig(config *sconfig.Slog) zapcore.EncoderConfig {
 
 // GetEncoderCore 获取Encoder的 zapcore.Core
 func getEncoderCore(l zapcore.Level, level zap.LevelEnablerFunc, config *sconfig.Slog) zapcore.Core {
-	writer := FileRotatelogs.GetWriteSyncer(l.String(), config) // 日志分割
+	writer := FileRotatelogs.GetWriteSyncer(l, config) // 日志分割
 	return zapcore.NewCore(getEncoder(config), writer, level)
 }
 
@@ -97,7 +97,7 @@ func customTimeEncoder(prefix string) func(t time.Time, encoder zapcore.Primitiv
 // GetZapCores 根据配置文件的Level获取 []zapcore.Core
 func GetZapCores(config *sconfig.Slog) []zapcore.Core {
 	cores := make([]zapcore.Core, 0, 7)
-	for level := transportLevel(config); level <= zapcore.FatalLevel; level++ {
+	for level := transportLevel(config.Level); level <= zapcore.FatalLevel; level++ {
 		cores = append(cores, getEncoderCore(level, getLevelPriority(level), config))
 	}
 	return cores

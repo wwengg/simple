@@ -1,11 +1,10 @@
 module github.com/wwengg/simple
 
-go 1.21
-
-toolchain go1.21.4
+go 1.22.1
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0
+	github.com/getsentry/sentry-go v0.28.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/brotli/go/cbrotli v0.0.0-20240715182736-39bcecf4559f

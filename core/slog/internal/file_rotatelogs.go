@@ -5,6 +5,8 @@
 package internal
 
 import (
+	"fmt"
+	"github.com/getsentry/sentry-go"
 	"github.com/wwengg/simple/core/sconfig"
 	"go.uber.org/zap/zapcore"
 	"os"
@@ -16,10 +18,32 @@ type fileRotatelogs struct{}
 
 // GetWriteSyncer 获取 zapcore.WriteSyncer
 
-func (r *fileRotatelogs) GetWriteSyncer(level string, config *sconfig.Slog) zapcore.WriteSyncer {
-	fileWriter := NewCutter(config.Director, level, config.IsAllInOne, WithCutterFormat("2006-01-02"))
+func (r *fileRotatelogs) GetWriteSyncer(level zapcore.Level, config *sconfig.Slog) zapcore.WriteSyncer {
+	fileWriter := NewCutter(config.Director, level.String(), config.IsAllInOne, WithCutterFormat("2006-01-02"))
+	var writeSyncers []zapcore.WriteSyncer
+	writeSyncers = append(writeSyncers, zapcore.AddSync(fileWriter))
 	if config.LogInConsole {
-		return zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(fileWriter))
+		writeSyncers = append(writeSyncers, zapcore.AddSync(os.Stdout))
 	}
-	return zapcore.AddSync(fileWriter)
+	if config.LogInSentry {
+		err := sentry.Init(sentry.ClientOptions{
+			// Either set your DSN here or set the SENTRY_DSN environment variable.
+			Dsn: config.SentryDsn,
+			// Enable printing of SDK debug messages.
+			// Useful when getting started or trying to figure something out.
+			Debug: true,
+			//Release: ,
+		})
+		if err != nil {
+			fmt.Printf("sentry init fail, err:%v\n", err)
+		}
+		level2 := transportLevel(config.LogInSentryLevel)
+		if level2 <= level {
+			writeSyncers = append(writeSyncers, zapcore.AddSync(&Sentry{level: level}))
+		}
+
+	}
+	return zapcore.NewMultiWriteSyncer(writeSyncers...)
+
+	//return zapcore.AddSync(fileWriter)
 }
