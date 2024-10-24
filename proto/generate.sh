@@ -1,1 +1,0 @@
-protoc -I. --gogofast_out=. ./pbbase/pbbase.proto
