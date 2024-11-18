@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"github.com/wwengg/simple/core/sconfig"
+	"github.com/wwengg/simple/core/slog"
 	"go.uber.org/zap"
 	"hash/crc32"
 	"runtime"
@@ -17,6 +18,20 @@ import (
 
 type RedisBase struct {
 	RedisCli *redis.Client
+}
+
+var redisBaseInstance *RedisBase
+
+func setRedisBase(redisBase *RedisBase) {
+	redisBaseInstance = redisBase
+}
+
+func RedisIns() *RedisBase {
+	if redisBaseInstance == nil {
+		slog.Ins().Errorf("redisBase is nil")
+		return nil
+	}
+	return redisBaseInstance
 }
 
 func NewCache(config sconfig.Redis) *RedisBase {
@@ -36,9 +51,11 @@ func NewCache(config sconfig.Redis) *RedisBase {
 		panic(err)
 	} else {
 		fmt.Println("redis connect ping response:", zap.String("pong", pong))
-		return &RedisBase{
+		rb := &RedisBase{
 			RedisCli: redisCli,
 		}
+		setRedisBase(rb)
+		return rb
 	}
 }
 

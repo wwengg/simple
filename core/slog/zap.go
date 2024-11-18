@@ -17,18 +17,7 @@ import (
 
 //type Field = zap.Field
 
-var sLogInstance Slog = NewZapLog(&sconfig.Slog{
-	Level:         "debug",
-	Format:        "console",
-	Director:      "log",
-	EncodeLevel:   "LowercaseColorLevelEncoder",
-	StacktraceKey: "stacktrace",
-	Prefix:        "slog",
-	MaxAge:        30,
-	ShowLine:      true,
-	LogInConsole:  true,
-	IsAllInOne:    true,
-})
+var sLogInstance Slog
 
 type Zap struct {
 	logger *zap.Logger
@@ -54,11 +43,13 @@ func NewZapLog(config *sconfig.Slog) *Zap {
 	defer logger.Sync()
 	sugar := logger.Sugar()
 
-	return &Zap{
+	z := &Zap{
 		logger: logger,
 		sugar:  sugar,
 		config: config,
 	}
+	setLog(z)
+	return z
 }
 
 func (z *Zap) Debug(msg string, fields ...Field) {
@@ -120,7 +111,7 @@ func (z *Zap) DebugFX(ctx context.Context, format string, v ...interface{}) {
 	z.sugar.Debugf(format, v...)
 }
 
-func SetLog(slog Slog) {
+func setLog(slog Slog) {
 	sLogInstance = slog
 }
 
