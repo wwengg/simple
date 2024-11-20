@@ -78,6 +78,10 @@ func (g *GinEngine) Serve() {
 	}
 }
 
+func (g *GinEngine) GetEngine() *gin.Engine {
+	return g.engine
+}
+
 func (g *GinEngine) AddPublicHandle(route string) {
 	{
 
