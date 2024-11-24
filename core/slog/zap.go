@@ -84,6 +84,20 @@ func (z *Zap) Warnf(format string, a ...interface{}) {
 	z.sugar.Warnf(format, a...)
 }
 
+func (z *Zap) Fatal(msg string, fields ...Field) {
+	z.logger.Fatal(msg, fields...)
+}
+func (z *Zap) Fatalf(format string, a ...interface{}) {
+	z.sugar.Fatalf(format, a...)
+}
+
+func (z *Zap) Panic(msg string, fields ...Field) {
+	z.logger.Panic(msg, fields...)
+}
+func (z *Zap) Panicf(format string, a ...interface{}) {
+	z.sugar.Panicf(format, a...)
+}
+
 func (z *Zap) InfoF(format string, v ...interface{}) {
 	z.sugar.Infof(format, v...)
 }

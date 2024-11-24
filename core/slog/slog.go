@@ -13,4 +13,8 @@ type Slog interface {
 	Debugf(format string, a ...interface{})
 	Errorf(format string, a ...interface{})
 	Warnf(format string, a ...interface{})
+	Fatal(msg string, fields ...Field)
+	Fatalf(format string, a ...interface{})
+	Panic(msg string, fields ...Field)
+	Panicf(format string, a ...interface{})
 }
