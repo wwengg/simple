@@ -6,9 +6,9 @@ package utils
 type BrotliCompressor struct{}
 
 func (c BrotliCompressor) Zip(data []byte) ([]byte, error) {
-	return data
+	return data, nil
 }
 
 func (c BrotliCompressor) Unzip(data []byte) ([]byte, error) {
-	return data
+	return data, nil
 }
