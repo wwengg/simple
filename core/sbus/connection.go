@@ -66,6 +66,7 @@ type SConnection interface {
 	LocalAddr() net.Addr          // Get the local address information of the connection (获取链接本地地址信息)
 	LocalAddrString() string      // Get the local address information of the connection as a string
 	RemoteAddrString() string     // Get the remote address information of the connection as a string
+	GetConnVersion() int32
 
 	SendData(data []byte) error // Send data to the message queue to be sent to the remote TCP client later
 	SendMsg(msg SMsg) error
@@ -75,6 +76,9 @@ type SConnection interface {
 	RemoveProperty(key string)              // Remove connection property
 	IsAlive() bool                          // Check if the current connection is alive(判断当前连接是否存活)
 	SetHeartBeat(checker SHeartbeatChecker) // Set the heartbeat detector (设置心跳检测器)
+
+	// 返回当前连接是否存在FrameDecoder
+	HasFrameDecoder() bool
 
 	//AddCloseCallback(handler, key interface{}, callback func()) // Add a close callback function (添加关闭回调函数)
 	//RemoveCloseCallback(handler, key interface{})               // Remove a close callback function (删除关闭回调函数)
@@ -93,6 +97,8 @@ type Connection struct {
 	// connection id for string
 	// (字符串的连接id)
 	ConnIdStr string
+	// 连接版本
+	ConnVersion int32
 	// The message management module that manages MsgID and the corresponding processing method
 	// (消息管理MsgID和对应处理方法的消息管理模块)
 	TaskHandler STaskHandler
@@ -137,11 +143,12 @@ type Connection struct {
 	heartBeatDuration time.Duration
 }
 
-func NewConnection(conn net.Conn, connId uint64, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack, connManager SConnManager, IOReadBuffSize uint32, heartbeatDuration time.Duration) SConnection {
+func NewConnection(conn net.Conn, connId uint64, connVersion int32, taskHandler STaskHandler, OnConnStart, OnConnStop func(conn SConnection), frameDecoder SFrameDecoder, datapack SDataPack, connManager SConnManager, IOReadBuffSize uint32, heartbeatDuration time.Duration) SConnection {
 	return &Connection{
 		Conn:              conn,
 		ConnID:            connId,
 		ConnIdStr:         fmt.Sprintf("%d", connId),
+		ConnVersion:       connVersion,
 		TaskHandler:       taskHandler,
 		OnConnStart:       OnConnStart,
 		OnConnStop:        OnConnStop,
@@ -299,6 +306,8 @@ func (bc *Connection) RemoteAddr() net.Addr     { return bc.Conn.RemoteAddr() }
 func (bc *Connection) LocalAddr() net.Addr      { return bc.Conn.LocalAddr() }
 func (bc *Connection) LocalAddrString() string  { return bc.Conn.LocalAddr().String() }
 func (bc *Connection) RemoteAddrString() string { return bc.Conn.RemoteAddr().String() }
+func (bc *Connection) GetConnVersion() int32    { return bc.ConnVersion }
+func (bc *Connection) HasFrameDecoder() bool    { return bc.FrameDecoder != nil }
 func (bc *Connection) SendData(data []byte) error {
 	bc.msgLock.RLock()
 	defer bc.msgLock.RUnlock()
