@@ -19,6 +19,8 @@ type SMsg interface {
 	//
 	SetNsqMessage(message *nsq.Message)
 	GetNsqMessage() *nsq.Message
+	//
+	GetHasFrameDecoder() bool
 }
 
 type NSQMsg struct {
@@ -90,3 +92,5 @@ func (m *NSQMsg) SetNsqMessage(message *nsq.Message) {
 func (m *NSQMsg) GetNsqMessage() *nsq.Message {
 	return m.nsqMessage
 }
+
+func (m *NSQMsg) GetHasFrameDecoder() bool { return false }
