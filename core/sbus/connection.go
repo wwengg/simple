@@ -327,6 +327,7 @@ func (bc *Connection) SendData(data []byte) error {
 	return nil
 }
 func (bc *Connection) SendMsg(msg SMsg) error {
+	msg.SetHasFrameDecoder(bc.HasFrameDecoder()) // 判断该连接是否需要编码器，pack的时候就可以选择性pack
 	if data, err := bc.Datapack.Pack(msg); err == nil {
 		return bc.SendData(data)
 	} else {
