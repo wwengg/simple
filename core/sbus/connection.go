@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/wwengg/simple/core/slog"
+	"go.uber.org/zap"
 	"net"
 	"sync"
 	"time"
@@ -231,6 +232,15 @@ func (bc *Connection) StartReader() {
 						// Get the current client's Request data
 						// (得到当前客户端请求的Request数据)
 						task := GetTask(bc, msg)
+						// 如果cmd为心跳包，不走后续逻辑，直接心跳保活 发送心跳包给客户端
+						if task.GetCmd() == bc.hc.Cmd() {
+							err := bc.hc.SendHeartBeatMsg()
+							if err != nil {
+								slog.Ins().Error("SendHeartBeatMsg", zap.Error(err))
+								return
+							}
+							continue
+						}
 						bc.TaskHandler.SendTaskToTaskQueue(task)
 					}
 					if err2 != nil {
@@ -246,6 +256,15 @@ func (bc *Connection) StartReader() {
 					// Get the current client's Request data
 					// (得到当前客户端请求的Request数据)
 					task := GetTask(bc, msg)
+					// 如果cmd为心跳包，不走后续逻辑，直接心跳保活 发送心跳包给客户端
+					if task.GetCmd() == bc.hc.Cmd() {
+						err := bc.hc.SendHeartBeatMsg()
+						if err != nil {
+							slog.Ins().Error("SendHeartBeatMsg", zap.Error(err))
+							return
+						}
+						continue
+					}
 					bc.TaskHandler.SendTaskToTaskQueue(task)
 				}
 			}

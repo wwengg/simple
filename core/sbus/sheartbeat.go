@@ -10,7 +10,7 @@ type SHeartbeatChecker interface {
 	SendHeartBeatMsg() error
 	BindConn(connection SConnection)
 	//Clone() SHeartbeatChecker
-	//MsgID() uint32
+	Cmd() uint16
 	//Router() SRouter
 }
 
