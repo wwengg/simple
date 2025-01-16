@@ -22,6 +22,7 @@ var (
 	LOG    slog.Slog
 	SRPC   srpc.SRPC
 	DBList map[string]*gorm.DB
+	REDIS  *store.RedisBase
 )
 
 
@@ -39,6 +40,10 @@ func InitSRPC() {
 func InitDB(log slog.Slog) {
 	// 初始化DBList
 	DBList = store.DBList(&CONFIG.DBList, log)
+}
+
+func InitRedis() {
+	REDIS = store.NewCache(CONFIG.Redis)
 }`)
 }
 

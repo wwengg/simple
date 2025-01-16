@@ -63,6 +63,7 @@ to quickly create a Cobra application.` + "`" + `,
 		global.InitSlog()
 		global.InitSRPC()
 		global.InitDB(global.LOG)
+		global.InitRedis()
 	
 		// 创建初始化数据库表
 		//global.DB_.AutoMigrate(
@@ -156,13 +157,13 @@ func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) {
 	go func() {
 		global.LOG.Error(s.ServeListener("tcp", ln).Error())
 	}()
-	global.LOG.Info("ready")
+	pid := os.Getpid()
+	global.LOG.Info("ready",zap.Int("pid",pid))
 	if err := upg.Ready(); err != nil {
 		panic(err)
 	}
 	<-upg.Exit()
-	global.LOG.Infof("s.Close()")
-	_ = s.Shutdown(context.Background())
+	global.LOG.Info("server Close",zap.Int("pid",pid))
 }
 
 {{ if .Viper -}}
