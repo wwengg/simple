@@ -161,6 +161,30 @@ func (s *RPCXClients) RPC2(ctx context.Context, servicePath string, serviceMetho
 	return nil
 }
 
+func (s *RPCXClients) Oneshot(ctx context.Context, servicePath string, serviceMethod string, args interface{}) (err error) {
+	// 传错args reply会panic
+	defer func() {
+		if err := recover(); err != nil {
+			var errStack = make([]byte, 1024)
+			n := runtime.Stack(errStack, true)
+			slog.Ins().Errorf("panic in RPC2: %v, stack: %s", err, errStack[:n])
+		}
+	}()
+	if s.Option.SerializeType == protocol.ProtoBuffer {
+		xc, err := s.GetXClient(servicePath)
+		if err != nil {
+			return err
+		}
+		err = xc.Oneshot(ctx, serviceMethod, args)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("XClient not support serialize type")
+	}
+	return nil
+}
+
 func (s *RPCXClients) RPCProtobuf(ctx context.Context, servicePath string, serviceMethod string, payload []byte) (meta map[string]string, resp []byte, err error) {
 	return s.RPC(ctx, servicePath, serviceMethod, payload, protocol.ProtoBuffer, false)
 }
