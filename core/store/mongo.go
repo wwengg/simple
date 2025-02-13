@@ -9,9 +9,13 @@ import (
 	"time"
 )
 
-var mongoClientInstance *mongo.Client
+type MongoDB struct {
+	*mongo.Client
+}
 
-func MongoIns() *mongo.Client {
+var mongoClientInstance *MongoDB
+
+func MongoIns() *MongoDB {
 	if mongoClientInstance == nil {
 		slog.Ins().Errorf("mongo client is nil")
 		return mongoClientInstance
@@ -19,7 +23,7 @@ func MongoIns() *mongo.Client {
 	return mongoClientInstance
 }
 
-func NewMongoClient(mongoURI string) (*mongo.Client, error) {
+func NewMongoClient(mongoURI string) (*MongoDB, error) {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(mongoURI).SetConnectTimeout(5*time.Second))
 	if err != nil {
 		slog.Ins().Errorf("mongo connect err %v", err)
@@ -29,8 +33,8 @@ func NewMongoClient(mongoURI string) (*mongo.Client, error) {
 		slog.Ins().Errorf("mongo ping err %v", err)
 		return nil, err
 	}
-	mongoClientInstance = client
-	return client, nil
+	mongoClientInstance = &MongoDB{client}
+	return &MongoDB{client}, nil
 }
 
 func CloseMongoClient() {
