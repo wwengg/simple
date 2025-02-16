@@ -342,6 +342,8 @@ func (bc *Connection) SendData(data []byte) error {
 	if err != nil {
 		slog.Ins().Errorf("SendMsg err data = %+v, err = %+v", data, err)
 		return err
+	} else {
+		slog.Ins().Debug("SendMsg data success")
 	}
 	return nil
 }
