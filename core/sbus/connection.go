@@ -350,6 +350,7 @@ func (bc *Connection) SendData(data []byte) error {
 func (bc *Connection) SendMsg(msg SMsg) error {
 	msg.SetHasFrameDecoder(bc.HasFrameDecoder()) // 判断该连接是否需要编码器，pack的时候就可以选择性pack
 	if data, err := bc.Datapack.Pack(msg); err == nil {
+		slog.Ins().Debug("pack", zap.Any("msg", msg))
 		return bc.SendData(data)
 	} else {
 		return err
