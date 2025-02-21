@@ -162,7 +162,6 @@ func {{ .AppName }}Serve(rpc sconfig.RPC, rpcService sconfig.RpcService) {
 	}
 	<-upg.Exit()
 	global.LOG.Infof("s.Close()")
-	_ = s.Shutdown(context.Background())
 }
 
 {{ if .Viper -}}
