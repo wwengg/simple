@@ -12,7 +12,7 @@ syntax = "proto3";
 
 package pbcommon;
 
-option go_package = "{{ .PkgName }}/proto/pbcommon";
+option go_package = "{{ .PkgName }}/goproto/pbcommon";
 
 enum EnumCode {
   None = 0;
