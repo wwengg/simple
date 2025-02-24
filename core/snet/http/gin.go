@@ -60,10 +60,11 @@ func (g *GinEngine) Serve() {
 	hErr := make(chan error, 1)
 	qErr := make(chan error, 1)
 	go func() {
-		hErr <- http.ServeTLS(g.connTcp, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			s.SetQUICHeaders(w.Header())
-			g.engine.ServeHTTP(w, r)
-		}), g.config.CertPath, g.config.KeyPath)
+		hErr <- http.Serve(g.connTcp, g.engine)
+		//hErr <- http.ServeTLS(g.connTcp, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//	s.SetQUICHeaders(w.Header())
+		//	g.engine.ServeHTTP(w, r)
+		//}), g.config.CertPath, g.config.KeyPath)
 	}()
 	go func() {
 		qErr <- s.ServeListener(g.ln)

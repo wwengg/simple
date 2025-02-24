@@ -20,7 +20,7 @@ type EtcdMutex struct {
 }
 
 // NewEtcdMutex default 10s
-func NewEtcdMutex(key string, client *clientv3.Client) (*EtcdMutex, error) {
+func NewEtcdMutex(client *clientv3.Client) (*EtcdMutex, error) {
 	session, err := setcd.NewSession(client)
 	if err != nil {
 		return nil, err
