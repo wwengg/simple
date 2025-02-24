@@ -8,13 +8,15 @@ import (
 	"context"
 	"github.com/wwengg/simple/core/setcd"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"sync"
 )
 
 type EtcdMutex struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	session *setcd.Session
-	mutex   *setcd.Mutex
+	//mutex   *setcd.Mutex
+	mutexMap sync.Map
 }
 
 // NewEtcdMutex default 10s
@@ -29,7 +31,7 @@ func NewEtcdMutex(key string, client *clientv3.Client) (*EtcdMutex, error) {
 		ctx:     ctx,
 		cancel:  cancel,
 		session: session,
-		mutex:   setcd.NewMutex(session, key),
+		//mutex:   setcd.NewMutex(session, key),
 	}, nil
 }
 
@@ -50,19 +52,29 @@ func NewEtcdLeaseMutex(key string, client *clientv3.Client, ttl int64) (*EtcdMut
 		ctx:     ctx,
 		cancel:  cancel,
 		session: session,
-		mutex:   setcd.NewMutex(session, key),
+		//mutex:   setcd.NewMutex(session, key),
 	}, nil
 }
 
 // Lock get lock
-func (em *EtcdMutex) Lock() error {
-	return em.mutex.Lock(em.ctx)
+func (em *EtcdMutex) Lock(key string) error {
+	if v, ok := em.mutexMap.Load(key); ok {
+		return v.(*setcd.Mutex).Lock(em.ctx)
+	} else {
+		mutex := setcd.NewMutex(em.session, key)
+		em.mutexMap.Store(key, mutex)
+		return mutex.Lock(em.ctx)
+	}
 }
 
-func (em *EtcdMutex) Unlock() error {
-	err := em.mutex.Unlock(em.ctx)
-
-	return err
+func (em *EtcdMutex) Unlock(key string) error {
+	if v, ok := em.mutexMap.Load(key); ok {
+		return v.(*setcd.Mutex).Unlock(em.ctx)
+	} else {
+		mutex := setcd.NewMutex(em.session, key)
+		em.mutexMap.Store(key, mutex)
+		return mutex.Unlock(em.ctx)
+	}
 }
 
 func (em *EtcdMutex) Close() {
