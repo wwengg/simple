@@ -204,7 +204,7 @@ func NewNsqByConf(nsq2 sconfig.Nsq, dataPack SDataPack) (*Nsq, error) {
 			slog.Ins().Infof("[nsq] add producer [%d]", i)
 		}
 	}
-
+	n.ctx, n.cancel = context.WithCancel(context.Background())
 	return n, nil
 }
 
@@ -232,7 +232,7 @@ func NewNsq(workPoolSize, maxTaskQueueLen, maxNsqDataChanLen uint32, channel, ns
 			slog.Ins().Infof("[nsq] add producer [%d]", i)
 		}
 	}
-
+	n.ctx, n.cancel = context.WithCancel(context.Background())
 	return n
 }
 
@@ -391,7 +391,7 @@ func (n *Nsq) Start() {
 			slog.Ins().Errorf("panic in Nsq Start: %v, stack: %s", err, errStack[:n])
 		}
 	}()
-	n.ctx, n.cancel = context.WithCancel(context.Background())
+	//n.ctx, n.cancel = context.WithCancel(context.Background())  New的时候就创建
 	// 开启taskWorkPool
 	//n.taskHandler.StartWorkerPool()
 	// 启动nsq consumer
