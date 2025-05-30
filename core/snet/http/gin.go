@@ -66,9 +66,11 @@ func (g *GinEngine) Serve() {
 		//	g.engine.ServeHTTP(w, r)
 		//}), g.config.CertPath, g.config.KeyPath)
 	}()
-	go func() {
-		qErr <- s.ServeListener(g.ln)
-	}()
+	if g.ln != nil {
+		go func() {
+			qErr <- s.ServeListener(g.ln)
+		}()
+	}
 	select {
 	case err := <-hErr:
 		s.Close()
